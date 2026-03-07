@@ -1,0 +1,33 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Vite",
+      "type": "shell",
+      "command": "npm run dev -- --host 127.0.0.1",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "pattern": {
+          "regexp": "."
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".",
+          "endsPattern": "Local:\\s+http://127\\.0\\.0\\.1:5173/?"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "Stop Vite",
+      "type": "shell",
+      "command": "bash -lc \"pkill -f 'vite --host 127.0.0.1' || true\"",
+      "problemMatcher": []
+    }
+  ]
+}

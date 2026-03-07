@@ -1,11 +1,23 @@
 
-  # EPICONCEPT ESIS App
+# EPICONCEPT ESIS App
 
-  This is a code bundle for EPICONCEPT ESIS App. The original project is available at https://www.figma.com/design/o5HzPPJ8DBE1T55cluMWee/EPICONCEPT-ESIS-App.
+This repository contains the ESIS front-end application.
 
-  ## Running the code
+## Documentation
 
-  Run `npm i` to install the dependencies.
+- Product architecture: [docs/business-functional-data-architecture.md](/mnt/c/Users/tranx/Documents/Github/esis/docs/business-functional-data-architecture.md)
 
-  Run `npm run dev` to start the development server.
+## Running the code
+
+Run `npm i` to install the dependencies.
+
+Run `npm run dev` to start the development server.
+
+## Playwright demo
+
+Run `npx playwright install chromium` once to install the browser used by the demo.
+
+Run `npm run test:e2e:demo` to execute the filmed end-to-end journey.
+
+Artifacts are written to `output/playwright/`, including the HTML report, traces, and recorded video.
   
