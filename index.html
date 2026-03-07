@@ -1,0 +1,1960 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Prototype Dépistage — Sidebar Tabs + Personas</title>
+    <style>
+        :root {
+            --bg: #0b1220;
+            --panel: #0f1a2d;
+            --panel2: #0c1628;
+            --card: #101f36;
+            --muted: #93a4c7;
+            --text: #e7efff;
+            --accent: #7c5cff;
+            --accent2: #2ee59d;
+            --warn: #ffcc66;
+            --danger: #ff6b6b;
+            --ok: #37d67a;
+            --line: rgba(255, 255, 255, .09);
+            --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+            --radius: 18px;
+            --radius2: 12px;
+            --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--sans);
+            background: radial-gradient(1200px 800px at 20% 10%, rgba(124, 92, 255, .25), transparent 55%),
+                radial-gradient(900px 700px at 80% 20%, rgba(46, 229, 157, .14), transparent 60%),
+                linear-gradient(180deg, #070b14 0%, #0b1220 100%);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        /* Layout */
+        .app {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: 100vh;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02));
+            border-right: 1px solid var(--line);
+            padding: 18px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 12px;
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, .04);
+            box-shadow: var(--shadow);
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(124, 92, 255, .9), rgba(46, 229, 157, .75));
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            letter-spacing: .5px;
+            color: #061021;
+        }
+
+        .brand h1 {
+            font-size: 14px;
+            margin: 0
+        }
+
+        .brand p {
+            margin: 2px 0 0;
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 10px;
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--line);
+        }
+
+        .navbtn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            width: 100%;
+            border: 0;
+            border-radius: 14px;
+            padding: 12px 12px;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            transition: .15s transform, .15s background;
+            outline: none;
+        }
+
+        .navbtn:hover {
+            background: rgba(255, 255, 255, .05)
+        }
+
+        .navbtn:active {
+            transform: translateY(1px)
+        }
+
+        .navbtn[aria-current="page"] {
+            background: linear-gradient(135deg, rgba(124, 92, 255, .30), rgba(46, 229, 157, .12));
+            border: 1px solid rgba(124, 92, 255, .35);
+        }
+
+        .navleft {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .navicon {
+            width: 30px;
+            height: 30px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .08);
+            flex: 0 0 auto;
+        }
+
+        .navtitle {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            text-align: left;
+        }
+
+        .navtitle b {
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .navtitle span {
+            font-size: 11px;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid rgba(255, 255, 255, .10);
+            color: var(--text);
+            flex: 0 0 auto;
+        }
+
+        .badge.unread {
+            background: rgba(124, 92, 255, .25);
+            border-color: rgba(124, 92, 255, .35);
+        }
+
+        .badge.warn {
+            background: rgba(255, 204, 102, .18);
+            border-color: rgba(255, 204, 102, .25);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 12px;
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.35;
+        }
+
+        .kbd {
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .10);
+            color: var(--text);
+        }
+
+        .main {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .topbar {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(255, 255, 255, .01));
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .08);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
+        }
+
+        .search input {
+            width: 100%;
+            border: 0;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 13px;
+        }
+
+        .search input::placeholder {
+            color: rgba(147, 164, 199, .75)
+        }
+
+        .chiprow {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            font-size: 12px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .08);
+            cursor: pointer;
+            user-select: none;
+            transition: .15s background;
+        }
+
+        .chip:hover {
+            background: rgba(255, 255, 255, .06)
+        }
+
+        .chip.active {
+            background: rgba(124, 92, 255, .25);
+            border-color: rgba(124, 92, 255, .35);
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            border: 0;
+            cursor: pointer;
+            border-radius: 14px;
+            padding: 10px 12px;
+            font-size: 13px;
+            color: var(--text);
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid rgba(255, 255, 255, .10);
+            transition: .15s transform, .15s background;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, .07)
+        }
+
+        .btn:active {
+            transform: translateY(1px)
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, rgba(124, 92, 255, .85), rgba(46, 229, 157, .55));
+            border-color: rgba(124, 92, 255, .35);
+            color: #061021;
+            font-weight: 700;
+        }
+
+        .btn.ghost {
+            background: transparent
+        }
+
+        .select {
+            border-radius: 14px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .08);
+            color: var(--text);
+            outline: none;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        /* Content area */
+        .content {
+            padding: 16px;
+            height: 100%;
+            overflow: auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.1fr .9fr;
+            gap: 14px;
+            align-items: start;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .card-h {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 14px;
+            border-bottom: 1px solid var(--line);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .03), transparent);
+        }
+
+        .card-h .title {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            min-width: 0;
+        }
+
+        .card-h .title b {
+            font-size: 14px
+        }
+
+        .card-h .title span {
+            font-size: 12px;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-b {
+            padding: 14px
+        }
+
+        .split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .statrow {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat {
+            padding: 12px;
+            border-radius: var(--radius2);
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        .stat .k {
+            font-size: 11px;
+            color: var(--muted)
+        }
+
+        .stat .v {
+            font-size: 18px;
+            font-weight: 800;
+            margin-top: 6px
+        }
+
+        .stat .s {
+            font-size: 12px;
+            margin-top: 6px;
+            color: rgba(231, 239, 255, .85)
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, .10);
+            background: rgba(255, 255, 255, .04);
+            color: var(--text);
+        }
+
+        .pill.ok {
+            border-color: rgba(55, 214, 122, .35);
+            background: rgba(55, 214, 122, .12)
+        }
+
+        .pill.warn {
+            border-color: rgba(255, 204, 102, .35);
+            background: rgba(255, 204, 102, .12)
+        }
+
+        .pill.danger {
+            border-color: rgba(255, 107, 107, .35);
+            background: rgba(255, 107, 107, .12)
+        }
+
+        .pill.info {
+            border-color: rgba(124, 92, 255, .35);
+            background: rgba(124, 92, 255, .12)
+        }
+
+        .pill.muted {
+            color: var(--muted)
+        }
+
+        /* Lists */
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .item {
+            padding: 12px;
+            border-radius: var(--radius2);
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .08);
+            cursor: pointer;
+            transition: .15s background, .15s transform, .15s border-color;
+        }
+
+        .item:hover {
+            background: rgba(255, 255, 255, .05)
+        }
+
+        .item:active {
+            transform: translateY(1px)
+        }
+
+        .item.selected {
+            border-color: rgba(124, 92, 255, .45);
+            background: rgba(124, 92, 255, .12);
+        }
+
+        .itemtop {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px
+        }
+
+        .itemtop b {
+            font-size: 13px
+        }
+
+        .itemtop .meta {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end
+        }
+
+        .itemsub {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.35
+        }
+
+        .kv {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .kv span {
+            padding: 6px 8px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid rgba(255, 255, 255, .08);
+            color: rgba(231, 239, 255, .88);
+        }
+
+        /* Detail panel */
+        .detail {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .step {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 10px;
+            border-radius: var(--radius2);
+            background: rgba(255, 255, 255, .02);
+            border: 1px solid rgba(255, 255, 255, .07);
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .18);
+            margin-top: 4px;
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, .05);
+        }
+
+        .dot.ok {
+            background: rgba(55, 214, 122, .9);
+            box-shadow: 0 0 0 4px rgba(55, 214, 122, .10);
+        }
+
+        .dot.warn {
+            background: rgba(255, 204, 102, .9);
+            box-shadow: 0 0 0 4px rgba(255, 204, 102, .10);
+        }
+
+        .dot.info {
+            background: rgba(124, 92, 255, .9);
+            box-shadow: 0 0 0 4px rgba(124, 92, 255, .10);
+        }
+
+        .dot.danger {
+            background: rgba(255, 107, 107, .9);
+            box-shadow: 0 0 0 4px rgba(255, 107, 107, .10);
+        }
+
+        .step b {
+            font-size: 13px
+        }
+
+        .step p {
+            margin: 4px 0 0;
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.35
+        }
+
+        /* Modal */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            z-index: 50;
+        }
+
+        .overlay.show {
+            display: flex
+        }
+
+        .modal {
+            width: min(980px, 100%);
+            max-height: min(85vh, 780px);
+            overflow: auto;
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .03));
+            border: 1px solid rgba(255, 255, 255, .12);
+            box-shadow: 0 20px 70px rgba(0, 0, 0, .55);
+        }
+
+        .modal-h {
+            position: sticky;
+            top: 0;
+            backdrop-filter: blur(10px);
+            background: rgba(10, 16, 28, .85);
+            border-bottom: 1px solid rgba(255, 255, 255, .10);
+            padding: 14px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            z-index: 2;
+        }
+
+        .modal-h b {
+            font-size: 14px
+        }
+
+        .modal-b {
+            padding: 14px
+        }
+
+        .formgrid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field label {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .field input,
+        .field select,
+        .field textarea {
+            border-radius: 14px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid rgba(255, 255, 255, .10);
+            color: var(--text);
+            outline: none;
+            font-size: 13px;
+        }
+
+        .field textarea {
+            min-height: 90px;
+            resize: vertical
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 14px;
+            border-top: 1px solid rgba(255, 255, 255, .10);
+            background: rgba(0, 0, 0, .10);
+        }
+
+        /* Responsive */
+        @media (max-width: 980px) {
+            body {
+                overflow: auto
+            }
+
+            .app {
+                grid-template-columns: 1fr;
+                height: auto;
+                overflow: auto
+            }
+
+            .sidebar {
+                position: sticky;
+                top: 0;
+                z-index: 20
+            }
+
+            .grid {
+                grid-template-columns: 1fr
+            }
+
+            .statrow {
+                grid-template-columns: 1fr
+            }
+
+            .formgrid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        /* Small helpers */
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .right {
+            margin-left: auto
+        }
+
+        .muted {
+            color: var(--muted)
+        }
+
+        .mono {
+            font-family: var(--mono)
+        }
+
+        .hr {
+            height: 1px;
+            background: var(--line);
+            margin: 12px 0
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 14px;
+            right: 14px;
+            width: min(420px, calc(100% - 28px));
+            padding: 12px 12px;
+            border-radius: 16px;
+            background: rgba(16, 31, 54, .92);
+            border: 1px solid rgba(255, 255, 255, .12);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
+            display: none;
+            z-index: 80;
+        }
+
+        .toast.show {
+            display: block
+        }
+
+        .toast b {
+            font-size: 13px
+        }
+
+        .toast p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.35
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app" id="app">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo">DS</div>
+                <div>
+                    <h1>Suite Dépistage (Prototype)</h1>
+                    <p id="brandSub">Régional • Campagnes • Dossiers</p>
+                </div>
+            </div>
+
+            <div class="nav" id="nav"></div>
+
+            <div class="sidebar-footer">
+                <div class="hint">
+                    👤 Persona via sélecteur en haut à droite.<br />
+                    ⌨️ <span class="kbd">Ctrl</span> + <span class="kbd">K</span> pour focus recherche.<br />
+                    🧪 Données fictives (2 items par objet).
+                </div>
+                <div class="row">
+                    <span class="pill muted">Build</span>
+                    <span class="pill info">UI riche</span>
+                    <span class="pill warn">Démo</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main">
+            <header class="topbar">
+                <div class="search" role="search">
+                    <span class="pill info">🔎</span>
+                    <input id="globalSearch" placeholder="Rechercher : patient, dossier, INS, campagne, message…" />
+                    <span class="pill muted mono" id="searchHint">/</span>
+                </div>
+
+                <div class="actions">
+                    <button class="btn ghost" id="btnHelp">🧭 Aide</button>
+                    <button class="btn primary" id="btnAction">＋ Action</button>
+                    <select class="select" id="personaSelect" title="Persona">
+                        <option value="medecin">Médecin</option>
+                        <option value="gestionnaire">Gestionnaire</option>
+                        <option value="patient">Patient</option>
+                    </select>
+                </div>
+            </header>
+
+            <section class="content">
+                <div class="row" style="margin-bottom:12px;">
+                    <div class="chiprow" id="chips"></div>
+                    <div class="right row">
+                        <span class="pill" id="contextPill">Contexte</span>
+                        <span class="pill muted" id="scopePill">Périmètre: Démo</span>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="card">
+                        <div class="card-h">
+                            <div class="title">
+                                <b id="leftTitle">Liste</b>
+                                <span id="leftSub">Sélectionne un élément pour afficher le détail.</span>
+                            </div>
+                            <div class="row">
+                                <span class="pill muted" id="leftCount">0</span>
+                                <button class="btn" id="btnQuickCreate">✨ Quick</button>
+                            </div>
+                        </div>
+                        <div class="card-b">
+                            <div class="list" id="list"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-h">
+                            <div class="title">
+                                <b id="rightTitle">Détail</b>
+                                <span id="rightSub">Aperçu, timeline, pièces, actions.</span>
+                            </div>
+                            <div class="row">
+                                <button class="btn" id="btnOpenModal">🪟 Ouvrir</button>
+                            </div>
+                        </div>
+                        <div class="card-b detail" id="detail">
+                            <div class="statrow" id="stats"></div>
+
+                            <div class="card" style="box-shadow:none;">
+                                <div class="card-h">
+                                    <div class="title">
+                                        <b>Timeline</b>
+                                        <span id="timelineSub">Étapes du parcours</span>
+                                    </div>
+                                    <span class="pill muted mono" id="auditMini">audit: —</span>
+                                </div>
+                                <div class="card-b">
+                                    <div class="timeline" id="timeline"></div>
+                                </div>
+                            </div>
+
+                            <div class="card" style="box-shadow:none;">
+                                <div class="card-h">
+                                    <div class="title">
+                                        <b>Pièces & liens</b>
+                                        <span>Documents rattachés</span>
+                                    </div>
+                                    <span class="pill muted" id="docsCount">0</span>
+                                </div>
+                                <div class="card-b">
+                                    <div class="list" id="docs"></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    <div class="overlay" id="overlay">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-h">
+                <b id="modalTitle">Modal</b>
+                <div class="row">
+                    <span class="pill muted" id="modalPersona">persona: —</span>
+                    <button class="btn" id="btnCloseModal">✕</button>
+                </div>
+            </div>
+            <div class="modal-b" id="modalBody"></div>
+            <div class="modal-footer">
+                <button class="btn" id="btnModalSecondary">Annuler</button>
+                <button class="btn primary" id="btnModalPrimary">Valider</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast">
+        <b id="toastTitle">Action</b>
+        <p id="toastText">—</p>
+    </div>
+
+    <script>
+        /* =========================
+           Données d'exemple (2 items par objet)
+           ========================= */
+        const DATA = {
+            patients: [
+                {
+                    id: "PAT-001",
+                    ins: "1 84 04 69 001 234 56",
+                    nom: "Durand",
+                    prenom: "Camille",
+                    dob: "1984-04-19",
+                    sexe: "F",
+                    contact: { email: "camille.durand@example.test", tel: "+33 6 12 34 56 78" },
+                    prefs: { canal: "SMS", langue: "FR", accessibilite: "Standard" },
+                    consentements: { partageDonnees: true, date: "2026-03-01" }
+                },
+                {
+                    id: "PAT-002",
+                    ins: "1 70 11 69 002 987 10",
+                    nom: "Nguyen",
+                    prenom: "Minh",
+                    dob: "1970-11-02",
+                    sexe: "M",
+                    contact: { email: "minh.nguyen@example.test", tel: "+33 7 98 76 54 32" },
+                    prefs: { canal: "Email", langue: "FR", accessibilite: "Dyslexie (police)" },
+                    consentements: { partageDonnees: false, date: "2026-02-20" }
+                }
+            ],
+
+            dossiers: [
+                {
+                    id: "DOS-1001",
+                    patientId: "PAT-001",
+                    programme: "Cancer du sein",
+                    statut: "À compléter",
+                    priorite: "Haute",
+                    campagneId: "CAM-2026-01",
+                    centre: "Centre Imagerie République",
+                    territoire: "Auvergne-Rhône-Alpes",
+                    dates: { invitation: "2026-02-05", rdv: "2026-02-18", examen: null, cr: null },
+                    audit: { lastBy: "Gestionnaire", lastAt: "2026-03-04 18:12" },
+                    timeline: [
+                        { t: "Invitation envoyée", s: "ok", d: "2026-02-05", by: "Gestionnaire" },
+                        { t: "RDV programmé", s: "info", d: "2026-02-10", by: "Patient" },
+                        { t: "Pièce manquante: ordonnance", s: "warn", d: "2026-02-12", by: "Médecin" }
+                    ],
+                    docIds: ["DOC-01", "DOC-02"]
+                },
+                {
+                    id: "DOS-1002",
+                    patientId: "PAT-002",
+                    programme: "Cancer colorectal",
+                    statut: "Examen réalisé",
+                    priorite: "Normale",
+                    campagneId: "CAM-2026-02",
+                    centre: "Hôpital Nord — Gastro",
+                    territoire: "Auvergne-Rhône-Alpes",
+                    dates: { invitation: "2026-01-22", rdv: "2026-02-03", examen: "2026-02-03", cr: "2026-02-10" },
+                    audit: { lastBy: "Médecin", lastAt: "2026-03-03 09:41" },
+                    timeline: [
+                        { t: "Invitation envoyée", s: "ok", d: "2026-01-22", by: "Gestionnaire" },
+                        { t: "RDV confirmé", s: "ok", d: "2026-01-30", by: "Patient" },
+                        { t: "Examen réalisé", s: "ok", d: "2026-02-03", by: "Centre" },
+                        { t: "Compte-rendu disponible", s: "info", d: "2026-02-10", by: "Médecin" }
+                    ],
+                    docIds: ["DOC-03", "DOC-04"]
+                }
+            ],
+
+            messages: [
+                {
+                    id: "MSG-2001",
+                    thread: "DOS-1001",
+                    fromRole: "gestionnaire",
+                    toRole: "patient",
+                    subject: "Relance — ordonnance manquante",
+                    preview: "Bonjour, il manque l’ordonnance pour finaliser votre dossier…",
+                    date: "2026-03-04 18:13",
+                    lu: false,
+                    pieces: ["DOC-02"]
+                },
+                {
+                    id: "MSG-2002",
+                    thread: "DOS-1002",
+                    fromRole: "patient",
+                    toRole: "medecin",
+                    subject: "Question sur le compte-rendu",
+                    preview: "Bonjour docteur, pouvez-vous m’expliquer la suite ?",
+                    date: "2026-02-11 08:20",
+                    lu: true,
+                    pieces: []
+                }
+            ],
+
+            campagnes: [
+                {
+                    id: "CAM-2026-01",
+                    titre: "Campagne Sein — T1 2026",
+                    cible: "Femmes 50–74",
+                    perimetre: "ARA",
+                    kpis: { invites: 1200, rdv: 640, realises: 510 }
+                },
+                {
+                    id: "CAM-2026-02",
+                    titre: "Campagne Colorectal — T1 2026",
+                    cible: "Hommes/Femmes 50–74",
+                    perimetre: "ARA",
+                    kpis: { invites: 980, rdv: 420, realises: 350 }
+                }
+            ],
+
+            reglesEligibilite: [
+                {
+                    id: "RGL-01",
+                    version: "2026.1",
+                    programme: "Cancer du sein",
+                    conditions: "F, âge 50–74, pas d’examen < 24 mois",
+                    justification: "Dépistage organisé",
+                    statut: "Active"
+                },
+                {
+                    id: "RGL-02",
+                    version: "2026.1",
+                    programme: "Cancer colorectal",
+                    conditions: "Âge 50–74, pas de test < 24 mois",
+                    justification: "Dépistage organisé",
+                    statut: "Active"
+                }
+            ],
+
+            rdvs: [
+                {
+                    id: "RDV-01",
+                    dossierId: "DOS-1001",
+                    date: "2026-02-18 14:30",
+                    lieu: "Centre Imagerie République",
+                    canal: "Présentiel",
+                    statut: "À confirmer"
+                },
+                {
+                    id: "RDV-02",
+                    dossierId: "DOS-1002",
+                    date: "2026-02-03 09:00",
+                    lieu: "Hôpital Nord — Gastro",
+                    canal: "Présentiel",
+                    statut: "Confirmé"
+                }
+            ],
+
+            documents: [
+                { id: "DOC-01", type: "Invitation", titre: "Invitation dépistage", date: "2026-02-05", source: "Système", statut: "Validé", hash: "a1f3…9c" },
+                { id: "DOC-02", type: "Liste pièces", titre: "Checklist dossier", date: "2026-02-12", source: "Gestionnaire", statut: "À compléter", hash: "b7d0…2a" },
+                { id: "DOC-03", type: "CR", titre: "Compte-rendu examen", date: "2026-02-10", source: "Médecin", statut: "Validé", hash: "c9aa…14" },
+                { id: "DOC-04", type: "Consentement", titre: "Consentement patient", date: "2026-02-20", source: "Patient", statut: "Refusé", hash: "d0e1…ff" }
+            ]
+        };
+
+        /* =========================
+           Config UI par persona
+           ========================= */
+        const PERSONAS = {
+            medecin: {
+                label: "Médecin",
+                scopePill: "Périmètre: Mes patients",
+                nav: [
+                    { id: "elig", label: "Éligibilité", sub: "Vérifier & justifier", icon: "🧬", show: true },
+                    { id: "dossiers", label: "Dossiers", sub: "Suivi clinique", icon: "📁", show: true },
+                    { id: "messagerie", label: "Messagerie", sub: "Patients & centres", icon: "💬", show: true, badge: () => unreadCount("medecin") },
+                    { id: "stats", label: "Statistiques", sub: "Qualité & délais", icon: "📊", show: true }
+                ],
+                chips: ["À relire", "En attente CR", "Pièces manquantes"],
+                actionLabel: "Action clinique",
+                modalTitle: "Médecin — Action clinique"
+            },
+            gestionnaire: {
+                label: "Gestionnaire",
+                scopePill: "Périmètre: Territoire ARA",
+                nav: [
+                    { id: "elig", label: "Éligibilité", sub: "Règles & contrôles", icon: "✅", show: true },
+                    { id: "dossiers", label: "Dossiers", sub: "Pilotage & relances", icon: "🗂️", show: true, badge: () => warnDossiersCount() },
+                    { id: "messagerie", label: "Messagerie", sub: "Templates & relances", icon: "📨", show: true, badge: () => unreadCount("gestionnaire") },
+                    { id: "stats", label: "Statistiques", sub: "Campagnes & KPIs", icon: "📈", show: true }
+                ],
+                chips: ["À relancer", "Perdus de vue", "Doublons"],
+                actionLabel: "Action de pilotage",
+                modalTitle: "Gestionnaire — Centre d’actions"
+            },
+            patient: {
+                label: "Patient",
+                scopePill: "Périmètre: Mon dossier",
+                nav: [
+                    { id: "elig", label: "Mon éligibilité", sub: "Comprendre & agir", icon: "🧭", show: true },
+                    { id: "dossiers", label: "Mon parcours", sub: "Étapes & documents", icon: "🧾", show: true },
+                    { id: "messagerie", label: "Mes messages", sub: "Échanger", icon: "💌", show: true, badge: () => unreadCount("patient") },
+                    { id: "stats", label: "Statistiques", sub: "(optionnel)", icon: "📊", show: false } // masqué côté patient
+                ],
+                chips: ["Prochain RDV", "Documents", "Préférences"],
+                actionLabel: "Mon action",
+                modalTitle: "Patient — Mon parcours"
+            }
+        };
+
+        const TAB_DEFS = {
+            elig: {
+                title: (p) => p === "patient" ? "Mon éligibilité" : "Éligibilité",
+                leftTitle: (p) => p === "gestionnaire" ? "Règles & contrôles" : (p === "medecin" ? "Contrôles rapides" : "Résumé éligibilité"),
+                leftSub: (p) => p === "patient" ? "Pourquoi vous êtes (ou non) concerné, et prochaines étapes." : "Vérifier une règle, justifier, déclencher une action.",
+                list: (persona) => {
+                    if (persona === "gestionnaire") return DATA.reglesEligibilite.map(r => ({
+                        key: r.id,
+                        title: `${r.programme} — v${r.version}`,
+                        sub: r.conditions,
+                        meta: [pill("Active", "ok"), pill(r.id, "muted"), pill("Règle", "info")],
+                        raw: r
+                    }));
+                    if (persona === "medecin") return DATA.dossiers.map(d => {
+                        const pat = byId(DATA.patients, d.patientId);
+                        return {
+                            key: d.id,
+                            title: `${pat.prenom} ${pat.nom} • ${d.programme}`,
+                            sub: `Statut: ${d.statut} • Centre: ${d.centre}`,
+                            meta: [pill(d.priorite, d.priorite === "Haute" ? "warn" : "muted"), pill(d.id, "muted")],
+                            raw: d
+                        };
+                    });
+                    // patient
+                    return [DATA.dossiers[0], DATA.dossiers[1]].map(d => {
+                        const pat = DATA.patients[0]; // démo: patient sur PAT-001 par défaut
+                        return {
+                            key: d.id,
+                            title: `Éligibilité — ${d.programme}`,
+                            sub: `Règle appliquée: ${DATA.reglesEligibilite.find(r => r.programme === d.programme)?.id || "—"} • Territoire: ${d.territoire}`,
+                            meta: [pill("Explication", "info"), pill("Actions", "muted")],
+                            raw: d
+                        };
+                    });
+                },
+                detail: (persona, selected) => {
+                    if (!selected) return emptyDetail();
+                    if (persona === "gestionnaire") {
+                        const r = selected.raw;
+                        return {
+                            stats: [
+                                stat("Programme", r.programme, "Règle d’éligibilité", "info"),
+                                stat("Version", r.version, r.statut, r.statut === "Active" ? "ok" : "warn"),
+                                stat("Portée", "Démo", "Territoire ARA", "muted")
+                            ],
+                            timeline: [
+                                stepDot("info", "Définition", r.conditions, "Système"),
+                                stepDot("ok", "Justification", r.justification, "Système"),
+                                stepDot("warn", "Point d’attention", "Vérifier exceptions / cas limites", "Gestionnaire")
+                            ],
+                            docs: [
+                                docCard({ titre: "Spécification règle (mock)", type: "Doc", date: "2026-03-01", statut: "Draft", hash: "rgl…01" })
+                            ],
+                            audit: `audit: ${r.id} • v${r.version}`
+                        };
+                    }
+                    // medecin / patient => on montre l'explication basée dossier + patient
+                    const d = selected.raw;
+                    const pat = byId(DATA.patients, d.patientId) || DATA.patients[0];
+                    const rule = DATA.reglesEligibilite.find(r => r.programme === d.programme);
+                    return {
+                        stats: [
+                            stat("Patient", `${pat.prenom} ${pat.nom}`, `INS: ${pat.ins}`, "info"),
+                            stat("Éligibilité", "À confirmer", rule ? rule.id : "—", "warn"),
+                            stat("Action", persona === "patient" ? "Prendre RDV" : "Orienter / compléter", "Selon statut", "muted")
+                        ],
+                        timeline: (d.timeline || []).map(x => stepDot(x.s, x.t, `${x.d} • ${x.by}`, x.by)),
+                        docs: (d.docIds || []).map(id => docCard(byId(DATA.documents, id))),
+                        audit: `audit: ${d.audit?.lastBy || "—"} • ${d.audit?.lastAt || "—"}`
+                    };
+                }
+            },
+
+            dossiers: {
+                title: (p) => p === "patient" ? "Mon parcours" : "Dossiers",
+                leftTitle: (p) => p === "patient" ? "Mes dossiers" : "Liste dossiers",
+                leftSub: (p) => p === "patient" ? "Étapes, pièces, rendez-vous, compte-rendu." : "Filtrer, relancer, valider des pièces, changer de statut.",
+                list: (persona) => {
+                    const base = DATA.dossiers.map(d => {
+                        const pat = byId(DATA.patients, d.patientId);
+                        return {
+                            key: d.id,
+                            title: persona === "patient" ? `${d.programme}` : `${d.id} • ${pat.prenom} ${pat.nom}`,
+                            sub: `Statut: ${d.statut} • Centre: ${d.centre}`,
+                            meta: [
+                                pill(d.priorite, d.priorite === "Haute" ? "warn" : "muted"),
+                                pill(d.programme.includes("sein") || d.programme.includes("Sein") ? "Sein" : "Autre", "info")
+                            ],
+                            raw: d
+                        };
+                    });
+                    // patient: ne garder que 1 dossier (démo)
+                    return persona === "patient" ? base.filter(x => x.raw.patientId === "PAT-001") : base;
+                },
+                detail: (persona, selected) => {
+                    if (!selected) return emptyDetail();
+                    const d = selected.raw;
+                    const pat = byId(DATA.patients, d.patientId);
+                    const rdv = DATA.rdvs.find(r => r.dossierId === d.id);
+                    const camp = byId(DATA.campagnes, d.campagneId);
+                    return {
+                        stats: [
+                            stat("Dossier", d.id, d.programme, "info"),
+                            stat("Statut", d.statut, rdv ? `RDV: ${rdv.statut}` : "RDV: —", d.statut === "Examen réalisé" ? "ok" : "warn"),
+                            stat("Campagne", camp?.id || "—", camp?.titre || "—", "muted")
+                        ],
+                        timeline: [
+                            ...d.timeline.map(x => stepDot(x.s, x.t, `${x.d} • ${x.by}`, x.by)),
+                            ...(rdv ? [stepDot("info", "Rendez-vous", `${rdv.date} • ${rdv.lieu} • ${rdv.statut}`, "Système")] : [])
+                        ],
+                        docs: (d.docIds || []).map(id => docCard(byId(DATA.documents, id))),
+                        audit: `audit: ${d.audit.lastBy} • ${d.audit.lastAt}`
+                    };
+                }
+            },
+
+            messagerie: {
+                title: (p) => p === "patient" ? "Mes messages" : "Messagerie",
+                leftTitle: (p) => p === "patient" ? "Inbox" : "Threads",
+                leftSub: (p) => "Pièces jointes, statuts lu/non-lu, modèles.",
+                list: (persona) => {
+                    let msgs = DATA.messages;
+                    if (persona === "patient") {
+                        // Démo: patient PAT-001 = dossier DOS-1001
+                        msgs = msgs.filter(m => m.thread === "DOS-1001");
+                    }
+                    if (persona === "medecin") {
+                        msgs = msgs.filter(m => m.toRole === "medecin" || m.fromRole === "medecin");
+                    }
+                    if (persona === "gestionnaire") {
+                        msgs = msgs.filter(m => m.toRole === "patient" || m.fromRole === "gestionnaire");
+                    }
+
+                    return msgs.map(m => ({
+                        key: m.id,
+                        title: `${m.subject}`,
+                        sub: `${m.date} • Thread: ${m.thread}`,
+                        meta: [
+                            pill(m.lu ? "Lu" : "Non lu", m.lu ? "muted" : "danger"),
+                            pill(m.id, "muted"),
+                            pill(m.pieces.length ? `Pièces: ${m.pieces.length}` : "Sans pièce", "info")
+                        ],
+                        raw: m
+                    }));
+                },
+                detail: (persona, selected) => {
+                    if (!selected) return emptyDetail();
+                    const m = selected.raw;
+                    const dossier = byId(DATA.dossiers, m.thread);
+                    const pat = dossier ? byId(DATA.patients, dossier.patientId) : null;
+                    const docs = (m.pieces || []).map(id => docCard(byId(DATA.documents, id)));
+                    return {
+                        stats: [
+                            stat("Thread", m.thread, dossier ? dossier.programme : "—", "info"),
+                            stat("De → À", `${roleLabel(m.fromRole)} → ${roleLabel(m.toRole)}`, m.lu ? "Lu" : "Non lu", m.lu ? "ok" : "warn"),
+                            stat("Patient", pat ? `${pat.prenom} ${pat.nom}` : "—", pat ? pat.ins : "—", "muted")
+                        ],
+                        timeline: [
+                            stepDot("info", "Objet", m.subject, roleLabel(m.fromRole)),
+                            stepDot(m.lu ? "ok" : "warn", "Aperçu", m.preview, roleLabel(m.toRole)),
+                            stepDot("muted", "Pièces", m.pieces.length ? `${m.pieces.join(", ")}` : "Aucune", "Système")
+                        ],
+                        docs: docs.length ? docs : [docCard({ titre: "Aucune pièce jointe", type: "—", date: "—", statut: "—", hash: "—" })],
+                        audit: `audit: ${m.id} • ${m.date}`
+                    };
+                }
+            },
+
+            stats: {
+                title: () => "Statistiques",
+                leftTitle: () => "Dashboards",
+                leftSub: () => "KPIs, délais, qualité, export.",
+                list: (persona) => {
+                    // patient: onglet masqué, mais si on y arrive, on met vide
+                    if (persona === "patient") return [];
+                    return DATA.campagnes.map(c => ({
+                        key: c.id,
+                        title: c.titre,
+                        sub: `Cible: ${c.cible} • Périmètre: ${c.perimetre}`,
+                        meta: [pill(`Invités: ${c.kpis.invites}`, "info"), pill(c.id, "muted")],
+                        raw: c
+                    }));
+                },
+                detail: (persona, selected) => {
+                    if (!selected) return emptyDetail("Sélectionne une campagne.");
+                    const c = selected.raw;
+                    const taux = Math.round((c.kpis.realises / c.kpis.invites) * 100);
+                    return {
+                        stats: [
+                            stat("Invités", String(c.kpis.invites), "Population ciblée", "info"),
+                            stat("RDV", String(c.kpis.rdv), "Conversions", "warn"),
+                            stat("Réalisés", String(c.kpis.realises), `Taux ≈ ${taux}%`, "ok")
+                        ],
+                        timeline: [
+                            stepDot("info", "Lecture", "KPIs agrégés (démo)", "Système"),
+                            stepDot("warn", "Qualité", "Surveiller incomplets / délais CR", "Gestionnaire"),
+                            stepDot("ok", "Export", "CSV / PDF (placeholder)", "Système")
+                        ],
+                        docs: [
+                            docCard({ titre: "Export CSV (placeholder)", type: "Export", date: "2026-03-05", statut: "Disponible", hash: "csv…01" }),
+                            docCard({ titre: "Capture dashboard (placeholder)", type: "Export", date: "2026-03-05", statut: "Disponible", hash: "png…01" })
+                        ],
+                        audit: `audit: ${c.id} • ${c.perimetre}`
+                    };
+                }
+            }
+        };
+
+        /* =========================
+           State
+           ========================= */
+        const state = {
+            persona: "medecin",
+            tab: "dossiers",
+            chip: null,
+            search: "",
+            selectedKey: null
+        };
+
+        /* =========================
+           DOM refs
+           ========================= */
+        const $ = (sel) => document.querySelector(sel);
+        const navEl = $("#nav");
+        const chipsEl = $("#chips");
+        const listEl = $("#list");
+        const detailEl = $("#detail");
+        const statsEl = $("#stats");
+        const timelineEl = $("#timeline");
+        const docsEl = $("#docs");
+        const docsCountEl = $("#docsCount");
+        const auditMiniEl = $("#auditMini");
+        const leftTitleEl = $("#leftTitle");
+        const leftSubEl = $("#leftSub");
+        const rightTitleEl = $("#rightTitle");
+        const rightSubEl = $("#rightSub");
+        const leftCountEl = $("#leftCount");
+        const contextPillEl = $("#contextPill");
+        const scopePillEl = $("#scopePill");
+        const personaSelect = $("#personaSelect");
+        const globalSearch = $("#globalSearch");
+        const overlay = $("#overlay");
+        const modalTitle = $("#modalTitle");
+        const modalBody = $("#modalBody");
+        const modalPersona = $("#modalPersona");
+        const btnCloseModal = $("#btnCloseModal");
+        const btnOpenModal = $("#btnOpenModal");
+        const btnAction = $("#btnAction");
+        const btnModalPrimary = $("#btnModalPrimary");
+        const btnModalSecondary = $("#btnModalSecondary");
+        const btnQuickCreate = $("#btnQuickCreate");
+        const btnHelp = $("#btnHelp");
+        const toast = $("#toast");
+        const toastTitle = $("#toastTitle");
+        const toastText = $("#toastText");
+
+        /* =========================
+           Helpers UI
+           ========================= */
+        function roleLabel(r) {
+            return ({ medecin: "Médecin", gestionnaire: "Gestionnaire", patient: "Patient" }[r] || r);
+        }
+        function byId(arr, id) { return arr.find(x => x.id === id); }
+        function pill(text, kind = "muted") { return { text, kind }; }
+
+        function stat(k, v, s, kind = "muted") { return { k, v, s, kind }; }
+
+        function stepDot(kind, title, desc, by) {
+            return { kind, title, desc, by };
+        }
+        function docCard(doc) {
+            if (!doc) doc = { titre: "Document introuvable", type: "—", date: "—", statut: "—", hash: "—" };
+            return {
+                title: doc.titre || doc.title || "Document",
+                sub: `${doc.type || "Doc"} • ${doc.date || "—"} • ${doc.source ? ("Source: " + doc.source + " • ") : ""}${doc.statut || "—"}`,
+                meta: [pill(doc.hash ? ("hash: " + doc.hash) : "hash: —", "muted")]
+            };
+        }
+
+        function emptyDetail(msg = "Sélectionne un élément à gauche.") {
+            return {
+                stats: [
+                    stat("Contexte", "—", msg, "muted"),
+                    stat("Action", "—", "Ouvre le modal pour voir les flows.", "muted"),
+                    stat("Audit", "—", "Traçabilité placeholder.", "muted")
+                ],
+                timeline: [
+                    stepDot("muted", "Aucune sélection", "Choisis une carte dans la liste.", "Système"),
+                    stepDot("info", "Astuce", "Change de persona (en haut à droite) pour voir l’UI évoluer.", "Système")
+                ],
+                docs: [docCard({ titre: "—", type: "—", date: "—", statut: "—", hash: "—" })],
+                audit: "audit: —"
+            };
+        }
+
+        function unreadCount(persona) {
+            // vision "boîte"
+            if (persona === "patient") return DATA.messages.filter(m => !m.lu && m.toRole === "patient").length;
+            if (persona === "medecin") return DATA.messages.filter(m => !m.lu && m.toRole === "medecin").length;
+            if (persona === "gestionnaire") return DATA.messages.filter(m => !m.lu && m.fromRole === "gestionnaire").length;
+            return 0;
+        }
+        function warnDossiersCount() {
+            return DATA.dossiers.filter(d => d.statut === "À compléter" || d.priorite === "Haute").length;
+        }
+
+        function showToast(title, text) {
+            toastTitle.textContent = title;
+            toastText.textContent = text;
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 2600);
+        }
+
+        /* =========================
+           Renderers
+           ========================= */
+        function renderNav() {
+            const cfg = PERSONAS[state.persona];
+            navEl.innerHTML = "";
+
+            cfg.nav.filter(n => n.show).forEach(n => {
+                const btn = document.createElement("button");
+                btn.className = "navbtn";
+                btn.dataset.tab = n.id;
+                btn.setAttribute("aria-current", n.id === state.tab ? "page" : "false");
+
+                const left = document.createElement("div");
+                left.className = "navleft";
+
+                const icon = document.createElement("div");
+                icon.className = "navicon";
+                icon.textContent = n.icon;
+
+                const title = document.createElement("div");
+                title.className = "navtitle";
+                const b = document.createElement("b");
+                b.textContent = typeof n.label === "function" ? n.label(state.persona) : n.label;
+                const s = document.createElement("span");
+                s.textContent = typeof n.sub === "function" ? n.sub(state.persona) : n.sub;
+
+                title.appendChild(b);
+                title.appendChild(s);
+
+                left.appendChild(icon);
+                left.appendChild(title);
+
+                const badgeValue = n.badge ? n.badge() : 0;
+                const badge = document.createElement("span");
+                badge.className = "badge";
+                if (n.id === "messagerie" && badgeValue > 0) badge.classList.add("unread");
+                if (n.id === "dossiers" && badgeValue > 0) badge.classList.add("warn");
+                badge.textContent = badgeValue ? String(badgeValue) : " ";
+                badge.style.visibility = badgeValue ? "visible" : "hidden";
+
+                btn.appendChild(left);
+                btn.appendChild(badge);
+
+                btn.addEventListener("click", () => {
+                    state.tab = n.id;
+                    state.selectedKey = null;
+                    renderAll();
+                });
+
+                navEl.appendChild(btn);
+            });
+        }
+
+        function renderChips() {
+            const cfg = PERSONAS[state.persona];
+            chipsEl.innerHTML = "";
+            cfg.chips.forEach(label => {
+                const chip = document.createElement("div");
+                chip.className = "chip" + (state.chip === label ? " active" : "");
+                chip.textContent = label;
+                chip.addEventListener("click", () => {
+                    state.chip = (state.chip === label) ? null : label;
+                    renderList();
+                });
+                chipsEl.appendChild(chip);
+            });
+        }
+
+        function applySearchAndChip(items) {
+            const q = (state.search || "").trim().toLowerCase();
+            let filtered = items;
+
+            if (q) {
+                filtered = filtered.filter(it =>
+                    (it.title || "").toLowerCase().includes(q) ||
+                    (it.sub || "").toLowerCase().includes(q) ||
+                    (it.key || "").toLowerCase().includes(q)
+                );
+            }
+            // chip simulation (simple)
+            if (state.chip) {
+                filtered = filtered.filter(it => {
+                    const t = (it.title + " " + it.sub).toLowerCase();
+                    if (state.chip === "À relancer") return t.includes("à compléter") || t.includes("relance");
+                    if (state.chip === "Pièces manquantes") return t.includes("manquante") || t.includes("à compléter");
+                    if (state.chip === "En attente CR") return t.includes("cr") || t.includes("compte-rendu");
+                    return true;
+                });
+            }
+            return filtered;
+        }
+
+        function renderList() {
+            const def = TAB_DEFS[state.tab];
+            const items = applySearchAndChip(def.list(state.persona));
+            listEl.innerHTML = "";
+
+            leftTitleEl.textContent = def.leftTitle(state.persona);
+            leftSubEl.textContent = def.leftSub(state.persona);
+            rightTitleEl.textContent = "Détail";
+            rightSubEl.textContent = def.title(state.persona);
+            leftCountEl.textContent = items.length;
+
+            if (items.length === 0) {
+                const empty = document.createElement("div");
+                empty.className = "item";
+                empty.style.cursor = "default";
+                empty.innerHTML = `<b>😶 Rien à afficher</b><div class="itemsub">Change de filtres / recherche, ou de persona.</div>`;
+                listEl.appendChild(empty);
+                state.selectedKey = null;
+                renderDetail(null);
+                return;
+            }
+
+            items.forEach(it => {
+                const div = document.createElement("div");
+                div.className = "item" + (state.selectedKey === it.key ? " selected" : "");
+                div.dataset.key = it.key;
+
+                const top = document.createElement("div");
+                top.className = "itemtop";
+
+                const title = document.createElement("div");
+                title.innerHTML = `<b>${escapeHtml(it.title)}</b>`;
+
+                const meta = document.createElement("div");
+                meta.className = "meta";
+                (it.meta || []).forEach(m => {
+                    const span = document.createElement("span");
+                    span.className = "pill " + (m.kind || "muted");
+                    span.textContent = m.text;
+                    meta.appendChild(span);
+                });
+
+                top.appendChild(title);
+                top.appendChild(meta);
+
+                const sub = document.createElement("div");
+                sub.className = "itemsub";
+                sub.textContent = it.sub;
+
+                div.appendChild(top);
+                div.appendChild(sub);
+
+                div.addEventListener("click", () => {
+                    state.selectedKey = it.key;
+                    renderList(); // to update selection style
+                    renderDetail(it);
+                });
+
+                listEl.appendChild(div);
+            });
+
+            // auto-select first if none
+            if (!state.selectedKey) {
+                state.selectedKey = items[0].key;
+                renderDetail(items[0]);
+                // refresh selection style
+                [...listEl.children].forEach(el => {
+                    if (el.dataset.key === state.selectedKey) el.classList.add("selected");
+                });
+            } else {
+                const found = items.find(x => x.key === state.selectedKey);
+                renderDetail(found || items[0]);
+            }
+        }
+
+        function renderDetail(selectedItem) {
+            const def = TAB_DEFS[state.tab];
+            const payload = def.detail(state.persona, selectedItem);
+
+            // Stats
+            statsEl.innerHTML = "";
+            payload.stats.forEach(s => {
+                const div = document.createElement("div");
+                div.className = "stat";
+                div.innerHTML = `
+      <div class="k">${escapeHtml(s.k)}</div>
+      <div class="v">${escapeHtml(s.v)}</div>
+      <div class="s"><span class="pill ${s.kind || "muted"}">${escapeHtml(s.s)}</span></div>
+    `;
+                statsEl.appendChild(div);
+            });
+
+            // Timeline
+            timelineEl.innerHTML = "";
+            (payload.timeline || []).forEach(st => {
+                const div = document.createElement("div");
+                div.className = "step";
+                const dot = document.createElement("div");
+                dot.className = "dot " + (st.kind || "muted");
+                const body = document.createElement("div");
+                body.innerHTML = `<b>${escapeHtml(st.title)}</b>
+      <p>${escapeHtml(st.desc)}<br/><span class="muted">— ${escapeHtml(st.by || "")}</span></p>`;
+                div.appendChild(dot);
+                div.appendChild(body);
+                timelineEl.appendChild(div);
+            });
+
+            // Docs
+            docsEl.innerHTML = "";
+            (payload.docs || []).forEach(d => {
+                const div = document.createElement("div");
+                div.className = "item";
+                div.style.cursor = "default";
+                div.innerHTML = `
+      <div class="itemtop">
+        <div><b>📄 ${escapeHtml(d.title)}</b></div>
+        <div class="meta">
+          ${(d.meta || []).map(m => `<span class="pill ${m.kind || "muted"}">${escapeHtml(m.text)}</span>`).join("")}
+        </div>
+      </div>
+      <div class="itemsub">${escapeHtml(d.sub || "")}</div>
+    `;
+                docsEl.appendChild(div);
+            });
+            docsCountEl.textContent = (payload.docs || []).length;
+
+            // Audit mini
+            auditMiniEl.textContent = payload.audit || "audit: —";
+        }
+
+        function renderContext() {
+            const def = TAB_DEFS[state.tab];
+            const cfg = PERSONAS[state.persona];
+            contextPillEl.textContent = `📌 ${def.title(state.persona)}`;
+            scopePillEl.textContent = cfg.scopePill;
+            btnAction.textContent = `＋ ${cfg.actionLabel}`;
+            personaSelect.value = state.persona;
+        }
+
+        function renderAll() {
+            renderContext();
+            renderNav();
+            renderChips();
+            renderList();
+        }
+
+        /* =========================
+           Modals (1 overlay, contenu dynamique)
+           ========================= */
+        function openModal() {
+            const persona = state.persona;
+            const cfg = PERSONAS[persona];
+            modalPersona.textContent = `persona: ${cfg.label}`;
+            modalTitle.textContent = cfg.modalTitle;
+
+            const currentSelected = getSelectedItem();
+            const selectedId = currentSelected ? currentSelected.key : "—";
+
+            if (persona === "medecin") {
+                modalBody.innerHTML = `
+      <div class="row">
+        <span class="pill info">🩺 Orientation</span>
+        <span class="pill muted">Cible: ${escapeHtml(selectedId)}</span>
+      </div>
+      <div class="hr"></div>
+      <div class="formgrid">
+        <div class="field">
+          <label>Action</label>
+          <select id="m_action">
+            <option>Valider compte-rendu</option>
+            <option>Demander pièce</option>
+            <option>Orienter examen complémentaire</option>
+            <option>Clôturer dossier</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Priorité</label>
+          <select id="m_prio">
+            <option>Normale</option>
+            <option>Haute</option>
+            <option>Urgente</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Message au patient</label>
+          <textarea id="m_msg" placeholder="Expliquer la suite, demander une pièce, rassurer…"></textarea>
+        </div>
+        <div class="field">
+          <label>Pièce jointe (mock)</label>
+          <select id="m_piece">
+            <option>Aucune</option>
+            <option>DOC-03 (CR)</option>
+            <option>DOC-02 (Checklist)</option>
+          </select>
+        </div>
+      </div>
+      <div class="hr"></div>
+      <div class="row">
+        <span class="pill warn">🧾 Audit</span>
+        <span class="pill muted mono">trace: ${escapeHtml(new Date().toISOString())}</span>
+      </div>
+    `;
+                btnModalPrimary.textContent = "Appliquer";
+            }
+
+            if (persona === "gestionnaire") {
+                modalBody.innerHTML = `
+      <div class="row">
+        <span class="pill info">🧩 Pilotage</span>
+        <span class="pill muted">Contexte: ${escapeHtml(state.tab)}</span>
+        <span class="pill muted">Cible: ${escapeHtml(selectedId)}</span>
+      </div>
+      <div class="hr"></div>
+      <div class="formgrid">
+        <div class="field">
+          <label>Action</label>
+          <select id="g_action">
+            <option>Inviter / relancer</option>
+            <option>Créer dossier</option>
+            <option>Changer statut</option>
+            <option>Assigner centre</option>
+            <option>Exporter CSV</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Canal</label>
+          <select id="g_canal">
+            <option>SMS</option>
+            <option>Email</option>
+            <option>Courrier (mock)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Modèle</label>
+          <select id="g_tpl">
+            <option>Relance pièce manquante</option>
+            <option>Convocation RDV</option>
+            <option>Invitation dépistage</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Message</label>
+          <textarea id="g_msg" placeholder="Texte personnalisé… (démo)"></textarea>
+        </div>
+      </div>
+      <div class="hr"></div>
+      <div class="row">
+        <span class="pill ok">✅ Prévisualisation</span>
+        <span class="pill muted">Envoi simulé + log d’audit</span>
+      </div>
+    `;
+                btnModalPrimary.textContent = "Lancer";
+            }
+
+            if (persona === "patient") {
+                const pat = DATA.patients[0]; // démo
+                const dossier = DATA.dossiers.find(d => d.patientId === "PAT-001") || DATA.dossiers[0];
+                const rdv = DATA.rdvs.find(r => r.dossierId === dossier.id);
+                modalBody.innerHTML = `
+      <div class="row">
+        <span class="pill info">🧑‍🦱 Mon parcours</span>
+        <span class="pill muted">${escapeHtml(pat.prenom)} ${escapeHtml(pat.nom)}</span>
+        <span class="pill muted mono">${escapeHtml(pat.ins)}</span>
+      </div>
+      <div class="hr"></div>
+
+      <div class="split">
+        <div class="card" style="box-shadow:none;">
+          <div class="card-h">
+            <div class="title">
+              <b>Prochaine étape</b>
+              <span>${escapeHtml(dossier.programme)} • ${escapeHtml(dossier.statut)}</span>
+            </div>
+            <span class="pill ${dossier.statut === "Examen réalisé" ? "ok" : "warn"}">${escapeHtml(dossier.statut)}</span>
+          </div>
+          <div class="card-b">
+            <div class="row" style="margin-bottom:10px;">
+              <span class="pill info">📅 RDV</span>
+              <span class="pill muted">${rdv ? escapeHtml(rdv.date) : "À planifier"}</span>
+            </div>
+            <div class="field">
+              <label>Action</label>
+              <select id="p_action">
+                <option>Confirmer mes infos</option>
+                <option>Prendre / modifier RDV</option>
+                <option>Déposer un document</option>
+                <option>Poser une question</option>
+              </select>
+            </div>
+            <div class="field" style="margin-top:10px;">
+              <label>Message</label>
+              <textarea id="p_msg" placeholder="Votre message… (démo)"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="box-shadow:none;">
+          <div class="card-h">
+            <div class="title">
+              <b>Préférences</b>
+              <span>Notifications & consentements</span>
+            </div>
+            <span class="pill muted">RGPD</span>
+          </div>
+          <div class="card-b">
+            <div class="formgrid">
+              <div class="field">
+                <label>Canal préféré</label>
+                <select id="p_canal">
+                  <option ${pat.prefs.canal === "SMS" ? "selected" : ""}>SMS</option>
+                  <option ${pat.prefs.canal === "Email" ? "selected" : ""}>Email</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Langue</label>
+                <select id="p_langue">
+                  <option>FR</option>
+                  <option>EN</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Consentement partage</label>
+                <select id="p_consent">
+                  <option ${pat.consentements.partageDonnees ? "selected" : ""}>Oui</option>
+                  <option ${!pat.consentements.partageDonnees ? "selected" : ""}>Non</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Accessibilité</label>
+                <select id="p_access">
+                  <option>Standard</option>
+                  <option>Dyslexie (police)</option>
+                  <option>Contraste élevé</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+                btnModalPrimary.textContent = "Confirmer";
+            }
+
+            overlay.classList.add("show");
+        }
+
+        function closeModal() {
+            overlay.classList.remove("show");
+        }
+
+        function getSelectedItem() {
+            const def = TAB_DEFS[state.tab];
+            const items = applySearchAndChip(def.list(state.persona));
+            return items.find(x => x.key === state.selectedKey) || null;
+        }
+
+        function modalPrimary() {
+            closeModal();
+            const cfg = PERSONAS[state.persona];
+            showToast(cfg.actionLabel, `Action simulée sur ${state.selectedKey || "—"} (persona: ${cfg.label}).`);
+        }
+
+        /* =========================
+           Events
+           ========================= */
+        personaSelect.addEventListener("change", (e) => {
+            state.persona = e.target.value;
+            // si l’onglet courant est masqué pour ce persona, basculer
+            const visibleTabs = PERSONAS[state.persona].nav.filter(n => n.show).map(n => n.id);
+            if (!visibleTabs.includes(state.tab)) state.tab = visibleTabs[0] || "dossiers";
+            state.selectedKey = null;
+            renderAll();
+        });
+
+        globalSearch.addEventListener("input", (e) => {
+            state.search = e.target.value || "";
+            state.selectedKey = null;
+            renderList();
+        });
+
+        btnOpenModal.addEventListener("click", openModal);
+        btnAction.addEventListener("click", openModal);
+        btnCloseModal.addEventListener("click", closeModal);
+        btnModalSecondary.addEventListener("click", closeModal);
+        btnModalPrimary.addEventListener("click", modalPrimary);
+
+        overlay.addEventListener("click", (e) => {
+            if (e.target === overlay) closeModal();
+        });
+
+        btnQuickCreate.addEventListener("click", () => {
+            showToast("Quick (démo)", "Création simulée (pas de backend).");
+        });
+
+        btnHelp.addEventListener("click", () => {
+            showToast("Aide", "Change de persona, clique les onglets, ouvre le modal ‘＋ Action’.");
+        });
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && overlay.classList.contains("show")) closeModal();
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+                e.preventDefault();
+                globalSearch.focus();
+            }
+        });
+
+        /* =========================
+           Utils
+           ========================= */
+        function escapeHtml(s) {
+            return String(s ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        /* =========================
+           Init
+           ========================= */
+        renderAll();
+    </script>
+</body>
+
+</html>
