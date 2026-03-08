@@ -6,6 +6,7 @@ import {
   type MessageThread,
   type Patient,
   type Practitioner,
+  type ScreeningDocument,
   type ScreeningProgram,
   type Task,
 } from "../data/demo-data";
@@ -184,6 +185,171 @@ async function appendPatientChild<T extends { id: string }>(
 
   await putPatient(nextPatient);
   return child;
+}
+
+async function updatePatientChild<T extends { id: string }>(
+  patientId: string,
+  key: "episodes" | "tasks" | "enrollments",
+  childId: string,
+  updates: Partial<T>,
+  replace: boolean,
+) {
+  const patient = await getPatientOrNotFound(patientId);
+  if (!patient) {
+    return null;
+  }
+
+  const currentItems = patient[key] as T[];
+  const index = currentItems.findIndex((item) => item.id === childId);
+  if (index === -1) {
+    return undefined;
+  }
+
+  const currentItem = currentItems[index];
+  const nextItem = (replace ? { ...updates, id: childId } : { ...currentItem, ...updates, id: childId }) as T;
+  const nextItems = [...currentItems];
+  nextItems[index] = nextItem;
+
+  const nextPatient = {
+    ...patient,
+    [key]: nextItems,
+  } as Patient;
+
+  await putPatient(nextPatient);
+  return nextItem;
+}
+
+async function deletePatientChild(
+  patientId: string,
+  key: "episodes" | "tasks" | "enrollments",
+  childId: string,
+) {
+  const patient = await getPatientOrNotFound(patientId);
+  if (!patient) {
+    return null;
+  }
+
+  const currentItems = patient[key];
+  const exists = currentItems.some((item) => item.id === childId);
+  if (!exists) {
+    return undefined;
+  }
+
+  const nextPatient = {
+    ...patient,
+    [key]: currentItems.filter((item) => item.id !== childId),
+  } as Patient;
+
+  await putPatient(nextPatient);
+  return { ok: true, id: childId };
+}
+
+async function updateProgramChild<T>(
+  patientId: string,
+  programId: string,
+  key: "documents" | "formulaires" | "examensProposes" | "parcours",
+  childId: string,
+  matches: (item: T) => boolean,
+  updates: Partial<T>,
+  replace: boolean,
+) {
+  const patient = await getPatientOrNotFound(patientId);
+  if (!patient) {
+    return null;
+  }
+
+  const programIndex = patient.programs.findIndex(
+    (entry) => encodeURIComponent(entry.type) === programId || entry.type === programId,
+  );
+  if (programIndex === -1) {
+    return undefined;
+  }
+
+  const program = patient.programs[programIndex];
+  const currentItems = program[key] as T[];
+  const itemIndex = currentItems.findIndex(matches);
+  if (itemIndex === -1) {
+    return false;
+  }
+
+  const currentItem = currentItems[itemIndex];
+  const nextItem = (replace ? { ...updates } : { ...currentItem, ...updates }) as T;
+  const nextItems = [...currentItems];
+  nextItems[itemIndex] = nextItem;
+
+  const nextProgram = { ...program, [key]: nextItems } as ScreeningProgram;
+  const nextPrograms = [...patient.programs];
+  nextPrograms[programIndex] = nextProgram;
+
+  await putPatient({ ...patient, programs: nextPrograms });
+  return nextItem;
+}
+
+async function appendProgramChild<T>(
+  patientId: string,
+  programId: string,
+  key: "documents" | "formulaires" | "examensProposes" | "parcours",
+  child: T,
+) {
+  const patient = await getPatientOrNotFound(patientId);
+  if (!patient) {
+    return null;
+  }
+
+  const programIndex = patient.programs.findIndex(
+    (entry) => encodeURIComponent(entry.type) === programId || entry.type === programId,
+  );
+  if (programIndex === -1) {
+    return undefined;
+  }
+
+  const program = patient.programs[programIndex];
+  const nextProgram = {
+    ...program,
+    [key]: [...program[key], child],
+  } as ScreeningProgram;
+  const nextPrograms = [...patient.programs];
+  nextPrograms[programIndex] = nextProgram;
+
+  await putPatient({ ...patient, programs: nextPrograms });
+  return child;
+}
+
+async function deleteProgramChild<T>(
+  patientId: string,
+  programId: string,
+  key: "documents" | "formulaires" | "examensProposes" | "parcours",
+  childId: string,
+  matches: (item: T) => boolean,
+) {
+  const patient = await getPatientOrNotFound(patientId);
+  if (!patient) {
+    return null;
+  }
+
+  const programIndex = patient.programs.findIndex(
+    (entry) => encodeURIComponent(entry.type) === programId || entry.type === programId,
+  );
+  if (programIndex === -1) {
+    return undefined;
+  }
+
+  const program = patient.programs[programIndex];
+  const currentItems = program[key] as T[];
+  const exists = currentItems.some(matches);
+  if (!exists) {
+    return false;
+  }
+
+  const nextProgram = {
+    ...program,
+    [key]: currentItems.filter((item) => !matches(item)),
+  } as ScreeningProgram;
+  const nextPrograms = [...patient.programs];
+  nextPrograms[programIndex] = nextProgram;
+
+  await putPatient({ ...patient, programs: nextPrograms });
+  return { ok: true, id: childId };
 }
 
 export async function seedFakeFirestore(payload: DemoDataBundle) {
@@ -413,6 +579,65 @@ export async function fakeFirestoreRequest(input: string, init?: RequestInit) {
     }
   }
 
+  if (segments.length === 4 && segments[0] === "patients" && (method === "PUT" || method === "PATCH")) {
+    const [, patientId, childCollection, childId] = segments;
+    const replace = method === "PUT";
+
+    if (childCollection === "episodes") {
+      const updated = await updatePatientChild<Episode>(patientId, "episodes", childId, body as Partial<Episode>, replace);
+      if (updated === null) {
+        return notFound();
+      }
+      return updated ? jsonResponse(updated) : childNotFound("episode", childId);
+    }
+    if (childCollection === "tasks") {
+      const updated = await updatePatientChild<Task>(patientId, "tasks", childId, body as Partial<Task>, replace);
+      if (updated === null) {
+        return notFound();
+      }
+      return updated ? jsonResponse(updated) : childNotFound("task", childId);
+    }
+    if (childCollection === "enrollments") {
+      const updated = await updatePatientChild<Enrollment>(
+        patientId,
+        "enrollments",
+        childId,
+        body as Partial<Enrollment>,
+        replace,
+      );
+      if (updated === null) {
+        return notFound();
+      }
+      return updated ? jsonResponse(updated) : childNotFound("enrollment", childId);
+    }
+  }
+
+  if (segments.length === 4 && segments[0] === "patients" && method === "DELETE") {
+    const [, patientId, childCollection, childId] = segments;
+
+    if (childCollection === "episodes") {
+      const result = await deletePatientChild(patientId, "episodes", childId);
+      if (result === null) {
+        return notFound();
+      }
+      return result ? jsonResponse(result) : childNotFound("episode", childId);
+    }
+    if (childCollection === "tasks") {
+      const result = await deletePatientChild(patientId, "tasks", childId);
+      if (result === null) {
+        return notFound();
+      }
+      return result ? jsonResponse(result) : childNotFound("task", childId);
+    }
+    if (childCollection === "enrollments") {
+      const result = await deletePatientChild(patientId, "enrollments", childId);
+      if (result === null) {
+        return notFound();
+      }
+      return result ? jsonResponse(result) : childNotFound("enrollment", childId);
+    }
+  }
+
   if (segments.length === 5 && segments[0] === "patients" && segments[2] === "programs" && method === "GET") {
     const [, patientId, , programId, programChild] = segments;
     const patient = await getPatientOrNotFound(patientId);
@@ -438,6 +663,225 @@ export async function fakeFirestoreRequest(input: string, init?: RequestInit) {
     }
     if (programChild === "timeline") {
       return jsonResponse(program.parcours);
+    }
+  }
+
+  if (segments.length === 5 && segments[0] === "patients" && segments[2] === "programs" && method === "POST") {
+    const [, patientId, , programId, programChild] = segments;
+
+    if (programChild === "documents") {
+      const documentId = typeof body.id === "string" ? body.id : "";
+      if (!documentId) {
+        return badRequest("Nested POST requests require an 'id' field in the JSON body");
+      }
+      const created = await appendProgramChild<ScreeningDocument>(
+        patientId,
+        programId,
+        "documents",
+        { ...body, id: documentId } as ScreeningDocument,
+      );
+      if (created === null) return notFound();
+      return created ? jsonResponse(created, 201) : childNotFound("program", programId);
+    }
+
+    if (programChild === "formulaires") {
+      const formId = typeof body.id === "string" ? body.id : "";
+      if (!formId) {
+        return badRequest("Nested POST requests require an 'id' field in the JSON body");
+      }
+      const created = await appendProgramChild(
+        patientId,
+        programId,
+        "formulaires",
+        { ...body, id: formId },
+      );
+      if (created === null) return notFound();
+      return created ? jsonResponse(created, 201) : childNotFound("program", programId);
+    }
+
+    if (programChild === "examens") {
+      const examName = typeof body.nom === "string" ? body.nom : "";
+      if (!examName) {
+        return badRequest("Nested exam POST requests require a 'nom' field in the JSON body");
+      }
+      const created = await appendProgramChild(
+        patientId,
+        programId,
+        "examensProposes",
+        { ...body, nom: examName },
+      );
+      if (created === null) return notFound();
+      return created ? jsonResponse(created, 201) : childNotFound("program", programId);
+    }
+
+    if (programChild === "timeline") {
+      const stepId = typeof body.id === "string" ? body.id : "";
+      if (!stepId) {
+        return badRequest("Nested POST requests require an 'id' field in the JSON body");
+      }
+      const created = await appendProgramChild(
+        patientId,
+        programId,
+        "parcours",
+        { ...body, id: stepId },
+      );
+      if (created === null) return notFound();
+      return created ? jsonResponse(created, 201) : childNotFound("program", programId);
+    }
+  }
+
+  if (segments.length === 6 && segments[0] === "patients" && segments[2] === "programs" && method === "GET") {
+    const [, patientId, , programId, programChild, childId] = segments;
+    const patient = await getPatientOrNotFound(patientId);
+    if (!patient) {
+      return notFound();
+    }
+
+    const program = patient.programs.find(
+      (entry) => encodeURIComponent(entry.type) === programId || entry.type === programId,
+    );
+    if (!program) {
+      return childNotFound("program", programId);
+    }
+
+    if (programChild === "documents") {
+      const item = program.documents.find((document) => document.id === childId);
+      return item ? jsonResponse(item) : childNotFound("document", childId);
+    }
+    if (programChild === "formulaires") {
+      const item = program.formulaires.find((form) => form.id === childId);
+      return item ? jsonResponse(item) : childNotFound("formulaire", childId);
+    }
+    if (programChild === "examens") {
+      const item = program.examensProposes.find(
+        (exam) => encodeURIComponent(exam.nom) === childId || exam.nom === childId,
+      );
+      return item ? jsonResponse(item) : childNotFound("examen", childId);
+    }
+    if (programChild === "timeline") {
+      const item = program.parcours.find((step) => step.id === childId);
+      return item ? jsonResponse(item) : childNotFound("timeline step", childId);
+    }
+  }
+
+  if (segments.length === 6 && segments[0] === "patients" && segments[2] === "programs" && (method === "PUT" || method === "PATCH")) {
+    const [, patientId, , programId, programChild, childId] = segments;
+    const replace = method === "PUT";
+
+    if (programChild === "documents") {
+      const updated = await updateProgramChild<ScreeningDocument>(
+        patientId,
+        programId,
+        "documents",
+        childId,
+        (document) => document.id === childId,
+        { ...body, id: childId },
+        replace,
+      );
+      if (updated === null) return notFound();
+      if (updated === undefined) return childNotFound("program", programId);
+      return updated ? jsonResponse(updated) : childNotFound("document", childId);
+    }
+
+    if (programChild === "formulaires") {
+      const updated = await updateProgramChild(
+        patientId,
+        programId,
+        "formulaires",
+        childId,
+        (form: { id: string }) => form.id === childId,
+        { ...body, id: childId },
+        replace,
+      );
+      if (updated === null) return notFound();
+      if (updated === undefined) return childNotFound("program", programId);
+      return updated ? jsonResponse(updated) : childNotFound("formulaire", childId);
+    }
+
+    if (programChild === "examens") {
+      const updated = await updateProgramChild(
+        patientId,
+        programId,
+        "examensProposes",
+        childId,
+        (exam: { nom: string }) => encodeURIComponent(exam.nom) === childId || exam.nom === childId,
+        { ...body, nom: decodeURIComponent(childId) },
+        replace,
+      );
+      if (updated === null) return notFound();
+      if (updated === undefined) return childNotFound("program", programId);
+      return updated ? jsonResponse(updated) : childNotFound("examen", childId);
+    }
+
+    if (programChild === "timeline") {
+      const updated = await updateProgramChild(
+        patientId,
+        programId,
+        "parcours",
+        childId,
+        (step: { id: string }) => step.id === childId,
+        { ...body, id: childId },
+        replace,
+      );
+      if (updated === null) return notFound();
+      if (updated === undefined) return childNotFound("program", programId);
+      return updated ? jsonResponse(updated) : childNotFound("timeline step", childId);
+    }
+  }
+
+  if (segments.length === 6 && segments[0] === "patients" && segments[2] === "programs" && method === "DELETE") {
+    const [, patientId, , programId, programChild, childId] = segments;
+
+    if (programChild === "documents") {
+      const result = await deleteProgramChild<ScreeningDocument>(
+        patientId,
+        programId,
+        "documents",
+        childId,
+        (document) => document.id === childId,
+      );
+      if (result === null) return notFound();
+      if (result === undefined) return childNotFound("program", programId);
+      return result ? jsonResponse(result) : childNotFound("document", childId);
+    }
+
+    if (programChild === "formulaires") {
+      const result = await deleteProgramChild(
+        patientId,
+        programId,
+        "formulaires",
+        childId,
+        (form: { id: string }) => form.id === childId,
+      );
+      if (result === null) return notFound();
+      if (result === undefined) return childNotFound("program", programId);
+      return result ? jsonResponse(result) : childNotFound("formulaire", childId);
+    }
+
+    if (programChild === "examens") {
+      const result = await deleteProgramChild(
+        patientId,
+        programId,
+        "examensProposes",
+        childId,
+        (exam: { nom: string }) => encodeURIComponent(exam.nom) === childId || exam.nom === childId,
+      );
+      if (result === null) return notFound();
+      if (result === undefined) return childNotFound("program", programId);
+      return result ? jsonResponse(result) : childNotFound("examen", childId);
+    }
+
+    if (programChild === "timeline") {
+      const result = await deleteProgramChild(
+        patientId,
+        programId,
+        "parcours",
+        childId,
+        (step: { id: string }) => step.id === childId,
+      );
+      if (result === null) return notFound();
+      if (result === undefined) return childNotFound("program", programId);
+      return result ? jsonResponse(result) : childNotFound("timeline step", childId);
     }
   }
 

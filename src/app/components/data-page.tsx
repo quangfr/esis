@@ -54,10 +54,11 @@ type ApiResponseState = {
 };
 
 const ROUTE_PRESETS: RoutePreset[] = [
-  { label: "Collections overview", method: "GET", route: "/collections", body: "" },
-  { label: "Patients collection", method: "GET", route: "/patients", body: "" },
-  { label: "Patient by ID", method: "GET", route: "/patients/pt-1", body: "" },
-  { label: "Patient episodes", method: "GET", route: "/patients/pt-1/episodes", body: "" },
+  { label: "Get collections overview", method: "GET", route: "/collections", body: "" },
+  { label: "Get patients collection", method: "GET", route: "/patients", body: "" },
+  { label: "Get patient by ID", method: "GET", route: "/patients/pt-1", body: "" },
+  { label: "Get patient episodes", method: "GET", route: "/patients/pt-1/episodes", body: "" },
+  { label: "Get patient episode by ID", method: "GET", route: "/patients/pt-1/episodes/ep-1", body: "" },
   {
     label: "Create patient episode",
     method: "POST",
@@ -74,7 +75,38 @@ const ROUTE_PRESETS: RoutePreset[] = [
       2,
     ),
   },
-  { label: "Patient tasks", method: "GET", route: "/patients/pt-1/tasks", body: "" },
+  {
+    label: "Replace patient episode",
+    method: "PUT",
+    route: "/patients/pt-1/episodes/ep-1",
+    body: JSON.stringify(
+      {
+        id: "ep-1",
+        type: "Sein",
+        statut: "Résultats disponibles",
+        dateOuverture: "10/02/2026",
+        prochaineEtape: "Partager le compte-rendu",
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    label: "Patch patient episode",
+    method: "PATCH",
+    route: "/patients/pt-1/episodes/ep-1",
+    body: JSON.stringify(
+      {
+        statut: "Résultats disponibles",
+        prochaineEtape: "Planifier l'appel de clôture",
+      },
+      null,
+      2,
+    ),
+  },
+  { label: "Delete patient episode", method: "DELETE", route: "/patients/pt-1/episodes/ep-1", body: "" },
+  { label: "Get patient tasks", method: "GET", route: "/patients/pt-1/tasks", body: "" },
+  { label: "Get patient task by ID", method: "GET", route: "/patients/pt-1/tasks/task-1", body: "" },
   {
     label: "Create patient task",
     method: "POST",
@@ -92,7 +124,39 @@ const ROUTE_PRESETS: RoutePreset[] = [
       2,
     ),
   },
-  { label: "Patient enrollments", method: "GET", route: "/patients/pt-1/enrollments", body: "" },
+  {
+    label: "Replace patient task",
+    method: "PUT",
+    route: "/patients/pt-1/tasks/task-1",
+    body: JSON.stringify(
+      {
+        id: "task-1",
+        titre: "Recontacter le patient",
+        echeance: "18/03/2026",
+        priorite: "Normale",
+        statut: "En cours",
+        assigneA: "Dr. Martin Dupont",
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    label: "Patch patient task",
+    method: "PATCH",
+    route: "/patients/pt-1/tasks/task-1",
+    body: JSON.stringify(
+      {
+        statut: "Terminée",
+        priorite: "Basse",
+      },
+      null,
+      2,
+    ),
+  },
+  { label: "Delete patient task", method: "DELETE", route: "/patients/pt-1/tasks/task-1", body: "" },
+  { label: "Get patient enrollments", method: "GET", route: "/patients/pt-1/enrollments", body: "" },
+  { label: "Get patient enrollment by ID", method: "GET", route: "/patients/pt-1/enrollments/enr-1", body: "" },
   {
     label: "Create patient enrollment",
     method: "POST",
@@ -109,12 +173,230 @@ const ROUTE_PRESETS: RoutePreset[] = [
       2,
     ),
   },
-  { label: "Patient programs", method: "GET", route: "/patients/pt-1/programs", body: "" },
-  { label: "Patient program by type", method: "GET", route: "/patients/pt-1/programs/Sein", body: "" },
-  { label: "Patient program documents", method: "GET", route: "/patients/pt-1/programs/Sein/documents", body: "" },
-  { label: "Patient program forms", method: "GET", route: "/patients/pt-1/programs/Sein/formulaires", body: "" },
-  { label: "Patient program exams", method: "GET", route: "/patients/pt-1/programs/Sein/examens", body: "" },
-  { label: "Patient program timeline", method: "GET", route: "/patients/pt-1/programs/Sein/timeline", body: "" },
+  {
+    label: "Replace patient enrollment",
+    method: "PUT",
+    route: "/patients/pt-1/enrollments/enr-1",
+    body: JSON.stringify(
+      {
+        id: "enr-1",
+        canal: "Téléphone",
+        statut: "Validé",
+        date: "09/03/2026",
+        consentement: true,
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    label: "Patch patient enrollment",
+    method: "PATCH",
+    route: "/patients/pt-1/enrollments/enr-1",
+    body: JSON.stringify(
+      {
+        statut: "Validé",
+        consentement: true,
+      },
+      null,
+      2,
+    ),
+  },
+  { label: "Delete patient enrollment", method: "DELETE", route: "/patients/pt-1/enrollments/enr-1", body: "" },
+  { label: "Get patient programs", method: "GET", route: "/patients/pt-1/programs", body: "" },
+  { label: "Get patient program by type", method: "GET", route: "/patients/pt-1/programs/Sein", body: "" },
+  { label: "Get patient program documents", method: "GET", route: "/patients/pt-1/programs/Sein/documents", body: "" },
+  { label: "Get patient program document by ID", method: "GET", route: "/patients/pt-1/programs/Sein/documents/doc-1", body: "" },
+  {
+    label: "Create patient program document",
+    method: "POST",
+    route: "/patients/pt-1/programs/Sein/documents",
+    body: JSON.stringify(
+      {
+        id: "doc-api-demo",
+        titre: "Compte-rendu de contrôle",
+        type: "Compte-rendu",
+        date: "14/03/2026",
+        statut: "Disponible",
+        aperçu: "Contrôle normal",
+        indicateur: "BI-RADS 2",
+        auteur: "Dr. Sophie Leroy",
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    label: "Replace patient program document",
+    method: "PUT",
+    route: "/patients/pt-1/programs/Sein/documents/doc-1",
+    body: JSON.stringify(
+      {
+        id: "doc-1",
+        titre: "Compte-rendu mis à jour",
+        type: "Compte-rendu",
+        date: "14/03/2026",
+        statut: "Disponible",
+        aperçu: "Aucun signe suspect",
+        indicateur: "BI-RADS 2",
+        auteur: "Dr. Sophie Leroy",
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    label: "Patch patient program document",
+    method: "PATCH",
+    route: "/patients/pt-1/programs/Sein/documents/doc-1",
+    body: JSON.stringify(
+      {
+        statut: "À signer",
+        aperçu: "Validation en attente",
+      },
+      null,
+      2,
+    ),
+  },
+  { label: "Delete patient program document", method: "DELETE", route: "/patients/pt-1/programs/Sein/documents/doc-1", body: "" },
+  { label: "Get patient program forms", method: "GET", route: "/patients/pt-1/programs/Sein/formulaires", body: "" },
+  { label: "Get patient program form by ID", method: "GET", route: "/patients/pt-1/programs/Sein/formulaires/form-1", body: "" },
+  {
+    label: "Create patient program form",
+    method: "POST",
+    route: "/patients/pt-1/programs/Sein/formulaires",
+    body: JSON.stringify(
+      {
+        id: "form-api-demo",
+        titre: "Questionnaire post-examen",
+        statut: "À compléter",
+        description: "Recueillir les symptômes récents.",
+        champs: ["Douleur", "Date", "Commentaires"],
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    label: "Replace patient program form",
+    method: "PUT",
+    route: "/patients/pt-1/programs/Sein/formulaires/form-1",
+    body: JSON.stringify(
+      {
+        id: "form-1",
+        titre: "Questionnaire post-examen",
+        statut: "Complet",
+        description: "Questionnaire validé après l'examen.",
+        champs: ["Douleur", "Date", "Commentaires"],
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    label: "Patch patient program form",
+    method: "PATCH",
+    route: "/patients/pt-1/programs/Sein/formulaires/form-1",
+    body: JSON.stringify(
+      {
+        statut: "À revoir",
+      },
+      null,
+      2,
+    ),
+  },
+  { label: "Delete patient program form", method: "DELETE", route: "/patients/pt-1/programs/Sein/formulaires/form-1", body: "" },
+  { label: "Get patient program exams", method: "GET", route: "/patients/pt-1/programs/Sein/examens", body: "" },
+  { label: "Get patient program exam by name", method: "GET", route: "/patients/pt-1/programs/Sein/examens/Mammographie", body: "" },
+  {
+    label: "Create patient program exam",
+    method: "POST",
+    route: "/patients/pt-1/programs/Sein/examens",
+    body: JSON.stringify(
+      {
+        nom: "IRM",
+        justification: "Compléter l'analyse",
+        resultat: "Planifié",
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    label: "Replace patient program exam",
+    method: "PUT",
+    route: "/patients/pt-1/programs/Sein/examens/Mammographie",
+    body: JSON.stringify(
+      {
+        nom: "Mammographie",
+        justification: "Contrôle annuel",
+        resultat: "Normal",
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    label: "Patch patient program exam",
+    method: "PATCH",
+    route: "/patients/pt-1/programs/Sein/examens/Mammographie",
+    body: JSON.stringify(
+      {
+        resultat: "Compte-rendu reçu",
+      },
+      null,
+      2,
+    ),
+  },
+  { label: "Delete patient program exam", method: "DELETE", route: "/patients/pt-1/programs/Sein/examens/Mammographie", body: "" },
+  { label: "Get patient program timeline", method: "GET", route: "/patients/pt-1/programs/Sein/timeline", body: "" },
+  { label: "Get patient program timeline step by ID", method: "GET", route: "/patients/pt-1/programs/Sein/timeline/step-1", body: "" },
+  {
+    label: "Create patient program timeline step",
+    method: "POST",
+    route: "/patients/pt-1/programs/Sein/timeline",
+    body: JSON.stringify(
+      {
+        id: "step-api-demo",
+        titre: "Validation médicale",
+        periode: "Mars 2026",
+        statut: "Suivant",
+        detail: "Préparer la validation du dossier.",
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    label: "Replace patient program timeline step",
+    method: "PUT",
+    route: "/patients/pt-1/programs/Sein/timeline/step-1",
+    body: JSON.stringify(
+      {
+        id: "step-1",
+        titre: "Validation médicale",
+        periode: "Mars 2026",
+        statut: "En cours",
+        detail: "Le dossier est en revue.",
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    label: "Patch patient program timeline step",
+    method: "PATCH",
+    route: "/patients/pt-1/programs/Sein/timeline/step-1",
+    body: JSON.stringify(
+      {
+        statut: "Précédent",
+        detail: "Étape terminée.",
+      },
+      null,
+      2,
+    ),
+  },
+  { label: "Delete patient program timeline step", method: "DELETE", route: "/patients/pt-1/programs/Sein/timeline/step-1", body: "" },
   {
     label: "Create patient",
     method: "POST",
@@ -161,10 +443,10 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   { label: "Delete patient", method: "DELETE", route: "/patients/pt-api-demo", body: "" },
-  { label: "Practitioners collection", method: "GET", route: "/practitioners", body: "" },
-  { label: "Practitioner by ID", method: "GET", route: "/practitioners/pr-1", body: "" },
-  { label: "Messages collection", method: "GET", route: "/messages", body: "" },
-  { label: "Message by ID", method: "GET", route: "/messages/msg-1", body: "" },
+  { label: "Get practitioners collection", method: "GET", route: "/practitioners", body: "" },
+  { label: "Get practitioner by ID", method: "GET", route: "/practitioners/pr-1", body: "" },
+  { label: "Get messages collection", method: "GET", route: "/messages", body: "" },
+  { label: "Get message by ID", method: "GET", route: "/messages/msg-1", body: "" },
 ];
 
 function formatJson(value: unknown) {
@@ -377,6 +659,23 @@ function getRequestBodySample(route: string, method: HttpVerb) {
     });
   }
 
+  if (segments[0] === "patients" && segments[2] === "episodes" && method === "PUT") {
+    return formatJson({
+      id: segments[3] ?? "ep-1",
+      type: "Sein",
+      statut: "Résultats disponibles",
+      dateOuverture: "10/02/2026",
+      prochaineEtape: "Partager le compte-rendu",
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "episodes" && method === "PATCH") {
+    return formatJson({
+      statut: "Résultats disponibles",
+      prochaineEtape: "Planifier l'appel de clôture",
+    });
+  }
+
   if (segments[0] === "patients" && segments[2] === "tasks" && method === "POST") {
     return formatJson({
       id: "task-api-demo",
@@ -388,6 +687,24 @@ function getRequestBodySample(route: string, method: HttpVerb) {
     });
   }
 
+  if (segments[0] === "patients" && segments[2] === "tasks" && method === "PUT") {
+    return formatJson({
+      id: segments[3] ?? "task-1",
+      titre: "Recontacter le patient",
+      echeance: "18/03/2026",
+      priorite: "Normale",
+      statut: "En cours",
+      assigneA: "Dr. Martin Dupont",
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "tasks" && method === "PATCH") {
+    return formatJson({
+      statut: "Terminée",
+      priorite: "Basse",
+    });
+  }
+
   if (segments[0] === "patients" && segments[2] === "enrollments" && method === "POST") {
     return formatJson({
       id: "enr-api-demo",
@@ -395,6 +712,131 @@ function getRequestBodySample(route: string, method: HttpVerb) {
       statut: "À valider",
       date: "08/03/2026",
       consentement: true,
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "enrollments" && method === "PUT") {
+    return formatJson({
+      id: segments[3] ?? "enr-1",
+      canal: "Téléphone",
+      statut: "Validé",
+      date: "09/03/2026",
+      consentement: true,
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "enrollments" && method === "PATCH") {
+    return formatJson({
+      statut: "Validé",
+      consentement: true,
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments[4] === "documents" && method === "POST") {
+    return formatJson({
+      id: "doc-api-demo",
+      titre: "Compte-rendu de contrôle",
+      type: "Compte-rendu",
+      date: "14/03/2026",
+      statut: "Disponible",
+      aperçu: "Contrôle normal",
+      indicateur: "BI-RADS 2",
+      auteur: "Dr. Sophie Leroy",
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments[4] === "documents" && method === "PUT") {
+    return formatJson({
+      id: segments[5] ?? "doc-1",
+      titre: "Compte-rendu mis à jour",
+      type: "Compte-rendu",
+      date: "14/03/2026",
+      statut: "Disponible",
+      aperçu: "Aucun signe suspect",
+      indicateur: "BI-RADS 2",
+      auteur: "Dr. Sophie Leroy",
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments[4] === "documents" && method === "PATCH") {
+    return formatJson({
+      statut: "À signer",
+      aperçu: "Validation en attente",
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments[4] === "formulaires" && method === "POST") {
+    return formatJson({
+      id: "form-api-demo",
+      titre: "Questionnaire post-examen",
+      statut: "À compléter",
+      description: "Recueillir les symptômes récents.",
+      champs: ["Douleur", "Date", "Commentaires"],
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments[4] === "formulaires" && method === "PUT") {
+    return formatJson({
+      id: segments[5] ?? "form-1",
+      titre: "Questionnaire post-examen",
+      statut: "Complet",
+      description: "Questionnaire validé après l'examen.",
+      champs: ["Douleur", "Date", "Commentaires"],
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments[4] === "formulaires" && method === "PATCH") {
+    return formatJson({
+      statut: "À revoir",
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments[4] === "examens" && method === "POST") {
+    return formatJson({
+      nom: "IRM",
+      justification: "Compléter l'analyse",
+      resultat: "Planifié",
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments[4] === "examens" && method === "PUT") {
+    return formatJson({
+      nom: decodeURIComponent(segments[5] ?? "Mammographie"),
+      justification: "Contrôle annuel",
+      resultat: "Normal",
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments[4] === "examens" && method === "PATCH") {
+    return formatJson({
+      resultat: "Compte-rendu reçu",
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments[4] === "timeline" && method === "POST") {
+    return formatJson({
+      id: "step-api-demo",
+      titre: "Validation médicale",
+      periode: "Mars 2026",
+      statut: "Suivant",
+      detail: "Préparer la validation du dossier.",
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments[4] === "timeline" && method === "PUT") {
+    return formatJson({
+      id: segments[5] ?? "step-1",
+      titre: "Validation médicale",
+      periode: "Mars 2026",
+      statut: "En cours",
+      detail: "Le dossier est en revue.",
+    });
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments[4] === "timeline" && method === "PATCH") {
+    return formatJson({
+      statut: "Précédent",
+      detail: "Étape terminée.",
     });
   }
 
@@ -501,6 +943,54 @@ function getVerbDefinition(route: string, method: HttpVerb): VerbDefinition {
     };
   }
 
+  if (segments[0] === "patients" && segments[2] === "episodes" && segments.length === 4 && method === "GET") {
+    return {
+      title: "GET /patients/:id/episodes/:episodeId",
+      description: "Reads one child episode by id inside the parent patient document.",
+      fields: [
+        { key: "id", format: "string", required: "required in route", notes: "Parent patient id." },
+        { key: "episodeId", format: "string", required: "required in route", notes: "Target episode child id." },
+      ],
+    };
+  }
+
+  if (segments[0] === "patients" && segments[2] === "episodes" && segments.length === 4 && method === "PUT") {
+    return {
+      title: "PUT /patients/:id/episodes/:episodeId",
+      description: "Replaces one child episode inside the parent patient document.",
+      fields: [
+        { key: "id", format: "string", required: "optional in body", notes: "The route child id is authoritative." },
+        { key: "type", format: "enum", required: "recommended", notes: "Episode screening type." },
+        { key: "statut", format: "enum", required: "recommended", notes: "Replacement episode state." },
+        { key: "dateOuverture", format: "string", required: "recommended", notes: "Replacement opening date." },
+        { key: "prochaineEtape", format: "string", required: "recommended", notes: "Replacement next step." },
+      ],
+    };
+  }
+
+  if (segments[0] === "patients" && segments[2] === "episodes" && segments.length === 4 && method === "PATCH") {
+    return {
+      title: "PATCH /patients/:id/episodes/:episodeId",
+      description: "Partially updates one child episode by merging the provided keys.",
+      fields: [
+        { key: "statut", format: "enum", required: "optional", notes: "Patch the episode state only if needed." },
+        { key: "prochaineEtape", format: "string", required: "optional", notes: "Patch the next-step label." },
+        { key: "dateOuverture", format: "string", required: "optional", notes: "Patch the opening date if corrected." },
+      ],
+    };
+  }
+
+  if (segments[0] === "patients" && segments[2] === "episodes" && segments.length === 4 && method === "DELETE") {
+    return {
+      title: "DELETE /patients/:id/episodes/:episodeId",
+      description: "Deletes one child episode from the parent patient document.",
+      fields: [
+        { key: "id", format: "string", required: "required in route", notes: "Parent patient id." },
+        { key: "episodeId", format: "string", required: "required in route", notes: "Target episode child id." },
+      ],
+    };
+  }
+
   if (segments[0] === "patients" && segments[2] === "tasks" && method === "GET") {
     return {
       title: "GET /patients/:id/tasks",
@@ -529,6 +1019,57 @@ function getVerbDefinition(route: string, method: HttpVerb): VerbDefinition {
     };
   }
 
+  if (segments[0] === "patients" && segments[2] === "tasks" && segments.length === 4 && method === "GET") {
+    return {
+      title: "GET /patients/:id/tasks/:taskId",
+      description: "Reads one child task by id inside the parent patient document.",
+      fields: [
+        { key: "id", format: "string", required: "required in route", notes: "Parent patient id." },
+        { key: "taskId", format: "string", required: "required in route", notes: "Target task child id." },
+      ],
+    };
+  }
+
+  if (segments[0] === "patients" && segments[2] === "tasks" && segments.length === 4 && method === "PUT") {
+    return {
+      title: "PUT /patients/:id/tasks/:taskId",
+      description: "Replaces one child task inside the parent patient document.",
+      fields: [
+        { key: "id", format: "string", required: "optional in body", notes: "The route child id is authoritative." },
+        { key: "titre", format: "string", required: "recommended", notes: "Replacement task title." },
+        { key: "echeance", format: "string", required: "recommended", notes: "Replacement due date." },
+        { key: "priorite", format: "enum", required: "recommended", notes: "Replacement priority level." },
+        { key: "statut", format: "enum", required: "recommended", notes: "Replacement task status." },
+        { key: "assigneA", format: "string", required: "recommended", notes: "Replacement assignee label." },
+      ],
+    };
+  }
+
+  if (segments[0] === "patients" && segments[2] === "tasks" && segments.length === 4 && method === "PATCH") {
+    return {
+      title: "PATCH /patients/:id/tasks/:taskId",
+      description: "Partially updates one child task by merging the provided keys.",
+      fields: [
+        { key: "titre", format: "string", required: "optional", notes: "Patch the task title." },
+        { key: "echeance", format: "string", required: "optional", notes: "Patch the due date." },
+        { key: "priorite", format: "enum", required: "optional", notes: "Patch the priority level." },
+        { key: "statut", format: "enum", required: "optional", notes: "Patch the task status." },
+        { key: "assigneA", format: "string", required: "optional", notes: "Patch the assignee label." },
+      ],
+    };
+  }
+
+  if (segments[0] === "patients" && segments[2] === "tasks" && segments.length === 4 && method === "DELETE") {
+    return {
+      title: "DELETE /patients/:id/tasks/:taskId",
+      description: "Deletes one child task from the parent patient document.",
+      fields: [
+        { key: "id", format: "string", required: "required in route", notes: "Parent patient id." },
+        { key: "taskId", format: "string", required: "required in route", notes: "Target task child id." },
+      ],
+    };
+  }
+
   if (segments[0] === "patients" && segments[2] === "enrollments" && method === "GET") {
     return {
       title: "GET /patients/:id/enrollments",
@@ -552,6 +1093,55 @@ function getVerbDefinition(route: string, method: HttpVerb): VerbDefinition {
         { key: "statut", format: "enum", required: "required", notes: "À valider, Validé, or Incomplet." },
         { key: "date", format: "string", required: "required", notes: "Displayed enrollment date." },
         { key: "consentement", format: "boolean", required: "required", notes: "Consent flag stored on the child enrollment." },
+      ],
+    };
+  }
+
+  if (segments[0] === "patients" && segments[2] === "enrollments" && segments.length === 4 && method === "GET") {
+    return {
+      title: "GET /patients/:id/enrollments/:enrollmentId",
+      description: "Reads one child enrollment by id inside the parent patient document.",
+      fields: [
+        { key: "id", format: "string", required: "required in route", notes: "Parent patient id." },
+        { key: "enrollmentId", format: "string", required: "required in route", notes: "Target enrollment child id." },
+      ],
+    };
+  }
+
+  if (segments[0] === "patients" && segments[2] === "enrollments" && segments.length === 4 && method === "PUT") {
+    return {
+      title: "PUT /patients/:id/enrollments/:enrollmentId",
+      description: "Replaces one child enrollment inside the parent patient document.",
+      fields: [
+        { key: "id", format: "string", required: "optional in body", notes: "The route child id is authoritative." },
+        { key: "canal", format: "enum", required: "recommended", notes: "Replacement enrollment channel." },
+        { key: "statut", format: "enum", required: "recommended", notes: "Replacement enrollment state." },
+        { key: "date", format: "string", required: "recommended", notes: "Replacement enrollment date." },
+        { key: "consentement", format: "boolean", required: "recommended", notes: "Replacement consent flag." },
+      ],
+    };
+  }
+
+  if (segments[0] === "patients" && segments[2] === "enrollments" && segments.length === 4 && method === "PATCH") {
+    return {
+      title: "PATCH /patients/:id/enrollments/:enrollmentId",
+      description: "Partially updates one child enrollment by merging the provided keys.",
+      fields: [
+        { key: "canal", format: "enum", required: "optional", notes: "Patch the channel only if needed." },
+        { key: "statut", format: "enum", required: "optional", notes: "Patch the enrollment state." },
+        { key: "date", format: "string", required: "optional", notes: "Patch the enrollment date." },
+        { key: "consentement", format: "boolean", required: "optional", notes: "Patch the consent flag." },
+      ],
+    };
+  }
+
+  if (segments[0] === "patients" && segments[2] === "enrollments" && segments.length === 4 && method === "DELETE") {
+    return {
+      title: "DELETE /patients/:id/enrollments/:enrollmentId",
+      description: "Deletes one child enrollment from the parent patient document.",
+      fields: [
+        { key: "id", format: "string", required: "required in route", notes: "Parent patient id." },
+        { key: "enrollmentId", format: "string", required: "required in route", notes: "Target enrollment child id." },
       ],
     };
   }
@@ -588,6 +1178,65 @@ function getVerbDefinition(route: string, method: HttpVerb): VerbDefinition {
         { key: "id", format: "string", required: "required in route", notes: "Parent patient id." },
         { key: "programType", format: "enum", required: "required in route", notes: "Program type segment." },
         { key: "list", format: "string", required: "optional", notes: "Sample list selector for the nested child collection." },
+      ],
+    };
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments.length === 5 && method === "POST") {
+    return {
+      title: `POST /patients/:id/programs/:programType/${segments[4]}`,
+      description: "Creates a nested child resource inside the selected patient program.",
+      fields: [
+        { key: "id", format: "string", required: segments[4] === "examens" ? "optional" : "required", notes: "Child id. Exams use 'nom' instead of 'id'." },
+        { key: "nom", format: "string", required: segments[4] === "examens" ? "required" : "optional", notes: "Exam name used as the child identifier for exams." },
+        { key: "payload", format: "object", required: "recommended", notes: "Child fields for the targeted nested collection." },
+      ],
+    };
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments.length === 6 && method === "GET") {
+    return {
+      title: `GET /patients/:id/programs/:programType/${segments[4]}/:childId`,
+      description: "Reads one nested child resource by id under the selected patient program.",
+      fields: [
+        { key: "id", format: "string", required: "required in route", notes: "Parent patient id." },
+        { key: "programType", format: "enum", required: "required in route", notes: "Program type segment." },
+        { key: "childId", format: "string", required: "required in route", notes: "Target nested child id or exam name." },
+      ],
+    };
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments.length === 6 && method === "PUT") {
+    return {
+      title: `PUT /patients/:id/programs/:programType/${segments[4]}/:childId`,
+      description: "Replaces one nested child resource under the selected patient program.",
+      fields: [
+        { key: "id", format: "string", required: segments[4] === "examens" ? "optional" : "recommended", notes: "The route child id is authoritative when applicable." },
+        { key: "nom", format: "string", required: segments[4] === "examens" ? "recommended" : "optional", notes: "Exam routes use the exam name as the identifier." },
+        { key: "payload", format: "object", required: "recommended", notes: "Full replacement payload for the targeted child resource." },
+      ],
+    };
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments.length === 6 && method === "PATCH") {
+    return {
+      title: `PATCH /patients/:id/programs/:programType/${segments[4]}/:childId`,
+      description: "Partially updates one nested child resource under the selected patient program.",
+      fields: [
+        { key: "childId", format: "string", required: "required in route", notes: "Target nested child id or exam name." },
+        { key: "payload", format: "object", required: "optional", notes: "Only include the nested fields that should change." },
+      ],
+    };
+  }
+
+  if (segments[0] === "patients" && segments[2] === "programs" && segments.length === 6 && method === "DELETE") {
+    return {
+      title: `DELETE /patients/:id/programs/:programType/${segments[4]}/:childId`,
+      description: "Deletes one nested child resource from the selected patient program.",
+      fields: [
+        { key: "id", format: "string", required: "required in route", notes: "Parent patient id." },
+        { key: "programType", format: "enum", required: "required in route", notes: "Program type segment." },
+        { key: "childId", format: "string", required: "required in route", notes: "Target nested child id or exam name." },
       ],
     };
   }
@@ -2005,7 +2654,7 @@ export function DataPage() {
             >
               {ROUTE_PRESETS.map((preset) => (
                 <option key={preset.label} value={preset.label}>
-                  {preset.label}
+                  {`${preset.label} · ${preset.method} ${preset.route}`}
                 </option>
               ))}
             </select>
