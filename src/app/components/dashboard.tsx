@@ -126,7 +126,7 @@ export function Dashboard() {
                 <DropdownMenuLabel>Changer de vue</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setRole("manager")}>
-                  Gestionnaire régional
+                  Gestionnaire
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setRole("patient")}>
                   Patiente suivie

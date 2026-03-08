@@ -64,6 +64,135 @@ const FLOW_STEPS: Record<Exclude<CreationFlow, null>, string[]> = {
   enrollment: ["Canal", "Consentement", "Confirmation"],
 };
 
+type WorkflowField =
+  | {
+      kind: "input" | "date";
+      label: string;
+      placeholder?: string;
+      defaultValue?: string;
+    }
+  | {
+      kind: "select";
+      label: string;
+      defaultValue?: string;
+      options: string[];
+    }
+  | {
+      kind: "textarea";
+      label: string;
+      placeholder?: string;
+      defaultValue?: string;
+    };
+
+const FLOW_FIELDS: Record<Exclude<CreationFlow, null>, WorkflowField[][]> = {
+  patient: [
+    [
+      { kind: "input", label: "Nom complet", defaultValue: "Marie Dubois" },
+      { kind: "input", label: "NIR", defaultValue: "2 68 03 75 123 456 12" },
+      { kind: "date", label: "Date de naissance", defaultValue: "1968-03-15" },
+      { kind: "select", label: "Programme principal", defaultValue: "Sein", options: ["Sein", "Colorectal", "Col utérus"] },
+    ],
+    [
+      { kind: "input", label: "Téléphone", defaultValue: "06 12 34 56 78" },
+      { kind: "input", label: "Email", defaultValue: "marie.dubois@example.fr" },
+      { kind: "select", label: "Canal préféré", defaultValue: "SMS", options: ["SMS", "Email", "Courrier"] },
+      { kind: "input", label: "Ville", defaultValue: "Paris" },
+    ],
+    [
+      { kind: "select", label: "Centre de rattachement", defaultValue: "CRDC Île-de-France", options: ["CRDC Île-de-France", "Maison de santé Belleville", "Cabinet République", "Clinique Saint-Louis"] },
+      { kind: "select", label: "Couverture", defaultValue: "Assurance active", options: ["Assurance active", "Vérification requise"] },
+      { kind: "select", label: "Consentement", defaultValue: "Confirmé", options: ["Confirmé", "En attente", "Refus partiel"] },
+      { kind: "textarea", label: "Observations de vérification", defaultValue: "Identité rapprochée avec le NIR et le dossier territorial." },
+    ],
+    [
+      { kind: "input", label: "Référence dossier", defaultValue: "DOSS-2026-1842" },
+      { kind: "select", label: "Praticien pressenti", defaultValue: "Dr. Martin Dupont", options: ["Dr. Martin Dupont", "Dr. Sophie Leroy", "Dr. Karim Nguyen", "Dr. Claire Moreau"] },
+      { kind: "date", label: "Date cible d'ouverture", defaultValue: "2026-03-12" },
+      { kind: "textarea", label: "Résumé de validation", defaultValue: "Patient éligible, canal SMS validé, intégration au prochain lot de convocation." },
+    ],
+  ],
+  episode: [
+    [
+      { kind: "input", label: "Patient concerné", defaultValue: "Marie Dubois" },
+      { kind: "input", label: "Référence épisode", defaultValue: "EP-2026-031" },
+      { kind: "select", label: "Type de cancer", defaultValue: "Colorectal", options: ["Sein", "Colorectal", "Col utérus"] },
+      { kind: "date", label: "Date d'ouverture", defaultValue: "2026-03-12" },
+    ],
+    [
+      { kind: "select", label: "Statut initial", defaultValue: "Kit envoyé", options: ["Invitation envoyée", "Kit envoyé", "Examen planifié", "Résultats disponibles"] },
+      { kind: "input", label: "Prochaine étape", defaultValue: "Validation médicale" },
+      { kind: "select", label: "Niveau de risque", defaultValue: "Surveillance rapprochée", options: ["Standard", "Surveillance rapprochée", "Avis spécialisé"] },
+      { kind: "textarea", label: "Justification clinique", defaultValue: "FIT positif avec nécessité d'orientation accélérée vers coloscopie." },
+    ],
+    [
+      { kind: "select", label: "Référent médical", defaultValue: "Dr. Karim Nguyen", options: ["Dr. Martin Dupont", "Dr. Sophie Leroy", "Dr. Karim Nguyen", "Dr. Claire Moreau"] },
+      { kind: "select", label: "Structure", defaultValue: "Clinique Saint-Louis", options: ["CRDC Île-de-France", "Clinique Saint-Louis", "Maison de santé Belleville", "Cabinet République"] },
+      { kind: "date", label: "Date de revue équipe", defaultValue: "2026-03-18" },
+      { kind: "textarea", label: "Note d'équipe", defaultValue: "Coordination avec gastro-entérologie et secrétariat anesthésie." },
+    ],
+  ],
+  task: [
+    [
+      { kind: "input", label: "Titre de la tâche", defaultValue: "Relance patient prioritaire" },
+      { kind: "select", label: "Contexte", defaultValue: "Suivi examen", options: ["Suivi examen", "Dossier incomplet", "Résultat à valider", "Relance administrative"] },
+      { kind: "select", label: "Priorité", defaultValue: "Haute", options: ["Basse", "Normale", "Haute"] },
+      { kind: "textarea", label: "Description", defaultValue: "Confirmer la disponibilité du patient pour l'examen complémentaire." },
+    ],
+    [
+      { kind: "select", label: "Assigné à", defaultValue: "Dr. Nora Diallo", options: ["Dr. Martin Dupont", "Dr. Nora Diallo", "Dr. Karim Nguyen", "Cellule support CRDC"] },
+      { kind: "select", label: "Canal d'action", defaultValue: "Téléphone", options: ["Téléphone", "SMS sécurisé", "Email", "Portail patient"] },
+      { kind: "input", label: "Patient lié", defaultValue: "Marie Dubois" },
+      { kind: "input", label: "Structure", defaultValue: "CRDC Île-de-France" },
+    ],
+    [
+      { kind: "date", label: "Échéance", defaultValue: "2026-03-12" },
+      { kind: "select", label: "Statut", defaultValue: "À faire", options: ["À faire", "En cours", "Bloquée", "Terminée"] },
+      { kind: "date", label: "Point de contrôle", defaultValue: "2026-03-10" },
+      { kind: "textarea", label: "Critère de clôture", defaultValue: "Patient joint et rendez-vous confirmé dans le planning régional." },
+    ],
+  ],
+  practitioner: [
+    [
+      { kind: "input", label: "Nom du praticien", defaultValue: "Dr. Nora Diallo" },
+      { kind: "input", label: "Identifiant interne", defaultValue: "PRO-064" },
+      { kind: "select", label: "Spécialité", defaultValue: "Coordination territoriale", options: ["Radiologie", "Médecine générale", "Gastro-entérologie", "Gynécologie", "Coordination territoriale"] },
+      { kind: "input", label: "Ville", defaultValue: "Bobigny" },
+    ],
+    [
+      { kind: "select", label: "Structure d'exercice", defaultValue: "CRDC Seine-Saint-Denis", options: ["CRDC Île-de-France", "CRDC Seine-Saint-Denis", "Clinique Saint-Louis", "Cabinet République"] },
+      { kind: "select", label: "Charge cible", defaultValue: "Maîtrisée", options: ["Faible", "Maîtrisée", "Élevée"] },
+      { kind: "input", label: "Disponibilité", defaultValue: "Créneaux jeudi après-midi" },
+      { kind: "textarea", label: "Périmètre d'intervention", defaultValue: "Enrôlements complexes, coordination territoriale et arbitrage des priorités." },
+    ],
+    [
+      { kind: "select", label: "Niveau d'accès", defaultValue: "Accès dossiers + messagerie", options: ["Accès dossiers + messagerie", "Lecture seule", "Gestion régionale", "Support administratif"] },
+      { kind: "select", label: "Authentification forte", defaultValue: "Obligatoire", options: ["Obligatoire", "Optionnelle", "À configurer"] },
+      { kind: "input", label: "Email professionnel", defaultValue: "nora.diallo@crdc-idf.fr" },
+      { kind: "textarea", label: "Restrictions / remarques", defaultValue: "Accès limité aux parcours territoriaux et aux dossiers assignés." },
+    ],
+  ],
+  enrollment: [
+    [
+      { kind: "select", label: "Canal d'enrôlement", defaultValue: "Portail", options: ["Portail", "Téléphone", "Cabinet", "Campagne"] },
+      { kind: "input", label: "Référence enrôlement", defaultValue: "ENR-447" },
+      { kind: "input", label: "Patient", defaultValue: "Marie Dubois" },
+      { kind: "date", label: "Date de saisie", defaultValue: "2026-03-08" },
+    ],
+    [
+      { kind: "select", label: "Consentement RGPD", defaultValue: "Recueilli", options: ["Recueilli", "À valider", "Refus partiel"] },
+      { kind: "select", label: "Consentement médical", defaultValue: "Recueilli", options: ["Recueilli", "À compléter", "En attente"] },
+      { kind: "select", label: "Signature", defaultValue: "Électronique", options: ["Électronique", "Papier", "Non requise"] },
+      { kind: "textarea", label: "Point d'attention", defaultValue: "Le patient souhaite être relancé uniquement par SMS sécurisé." },
+    ],
+    [
+      { kind: "select", label: "Statut final", defaultValue: "Validé", options: ["Validé", "À valider", "Incomplet"] },
+      { kind: "select", label: "Centre cible", defaultValue: "CRDC Île-de-France", options: ["CRDC Île-de-France", "Maison de santé Belleville", "Cabinet République"] },
+      { kind: "date", label: "Date de confirmation", defaultValue: "2026-03-09" },
+      { kind: "textarea", label: "Résumé de confirmation", defaultValue: "Consentements reçus, orientation validée, prochaine étape programmée." },
+    ],
+  ],
+};
+
 function getStatutColor(statut: Patient["statut"]) {
   switch (statut) {
     case "En attente":
@@ -171,6 +300,7 @@ function CreationWorkflowDialog({
   }
 
   const steps = FLOW_STEPS[flow];
+  const stepFields = FLOW_FIELDS[flow][step];
   const isLast = step === steps.length - 1;
 
   return (
@@ -203,59 +333,9 @@ function CreationWorkflowDialog({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <label className="space-y-2 text-sm text-gray-700">
-              <span className="font-medium">Libellé principal</span>
-              <input
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Saisir une valeur"
-                defaultValue={
-                  flow === "patient"
-                    ? "Marie Dubois"
-                    : flow === "episode"
-                    ? "Épisode colorectal 2026"
-                    : flow === "task"
-                    ? "Relance patient prioritaire"
-                    : flow === "practitioner"
-                    ? "Dr. Nora Diallo"
-                    : "Portail citoyen"
-                }
-              />
-            </label>
-            <label className="space-y-2 text-sm text-gray-700">
-              <span className="font-medium">Référence</span>
-              <input
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Référence interne"
-                defaultValue={
-                  flow === "patient"
-                    ? "DOSS-2026-1842"
-                    : flow === "episode"
-                    ? "EP-2026-031"
-                    : flow === "task"
-                    ? "TSK-118"
-                    : flow === "practitioner"
-                    ? "PRO-064"
-                    : "ENR-447"
-                }
-              />
-            </label>
-            <label className="space-y-2 text-sm text-gray-700">
-              <span className="font-medium">Canal ou responsable</span>
-              <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option>CRDC Île-de-France</option>
-                <option>Maison de santé Belleville</option>
-                <option>Cabinet République</option>
-                <option>Portail patient</option>
-              </select>
-            </label>
-            <label className="space-y-2 text-sm text-gray-700">
-              <span className="font-medium">Date cible</span>
-              <input
-                type="date"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                defaultValue="2026-03-12"
-              />
-            </label>
+            {stepFields.map((field) => (
+              <WorkflowFieldInput key={`${flow}-${step}-${field.label}`} field={field} />
+            ))}
           </div>
 
           <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4">
@@ -921,29 +1001,33 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                         <div className="grid grid-cols-[1.1fr_minmax(0,1fr)] gap-6">
                           <div className="space-y-4">
                             <SectionTitle title="Documents de résultats" />
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
                               {program.documents.map((document) => (
                                 <button
                                   key={document.id}
                                   className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-left hover:bg-white hover:shadow-sm transition-all"
                                   onClick={() => setSelectedDocument(document)}
                                 >
-                                  <div className="rounded-lg bg-white border border-gray-200 p-3">
-                                    <div className="flex items-center justify-between text-xs text-gray-500">
-                                      <span>{document.type}</span>
-                                      <span>{document.date}</span>
+                                  <div className="flex items-start gap-4">
+                                    <div className="w-[220px] shrink-0 rounded-lg bg-white border border-gray-200 p-3">
+                                      <div className="flex items-center justify-between text-xs text-gray-500">
+                                        <span>{document.type}</span>
+                                        <span>{document.date}</span>
+                                      </div>
+                                      <div className="mt-3 overflow-hidden rounded-lg border border-gray-100">
+                                        <VectorDocumentIllustration document={document} />
+                                      </div>
                                     </div>
-                                    <div className="mt-3 overflow-hidden rounded-lg border border-gray-100">
-                                      <VectorDocumentIllustration document={document} />
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex items-start justify-between gap-3">
+                                        <p className="font-medium text-gray-900">{document.titre}</p>
+                                        <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[11px] font-medium text-gray-600">
+                                          {document.indicateur}
+                                        </span>
+                                      </div>
+                                      <p className="mt-2 text-sm text-gray-500">{document.aperçu}</p>
                                     </div>
                                   </div>
-                                  <div className="mt-3 flex items-center justify-between gap-3">
-                                    <p className="font-medium text-gray-900">{document.titre}</p>
-                                    <span className="rounded-full bg-white px-2 py-1 text-[11px] font-medium text-gray-600">
-                                      {document.indicateur}
-                                    </span>
-                                  </div>
-                                  <p className="text-sm text-gray-500 mt-1">{document.aperçu}</p>
                                 </button>
                               ))}
                             </div>
@@ -1179,6 +1263,49 @@ function QuickActionCard({
         <span className="text-sm font-medium text-gray-900">{title}</span>
       </div>
     </button>
+  );
+}
+
+function WorkflowFieldInput({ field }: { field: WorkflowField }) {
+  if (field.kind === "select") {
+    return (
+      <label className="space-y-2 text-sm text-gray-700">
+        <span className="font-medium">{field.label}</span>
+        <select
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          defaultValue={field.defaultValue}
+        >
+          {field.options.map((option) => (
+            <option key={option}>{option}</option>
+          ))}
+        </select>
+      </label>
+    );
+  }
+
+  if (field.kind === "textarea") {
+    return (
+      <label className="col-span-2 space-y-2 text-sm text-gray-700">
+        <span className="font-medium">{field.label}</span>
+        <textarea
+          className="min-h-28 w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder={field.placeholder}
+          defaultValue={field.defaultValue}
+        />
+      </label>
+    );
+  }
+
+  return (
+    <label className="space-y-2 text-sm text-gray-700">
+      <span className="font-medium">{field.label}</span>
+      <input
+        type={field.kind === "date" ? "date" : "text"}
+        className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        placeholder={field.placeholder}
+        defaultValue={field.defaultValue}
+      />
+    </label>
   );
 }
 

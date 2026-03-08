@@ -811,7 +811,7 @@ const MESSAGES: MessageThread[] = [
 const ROLE_PROFILES: Record<UserRole, RoleProfile> = {
   manager: {
     nom: "Dr. Martin Dupont",
-    fonction: "Gestionnaire régional",
+    fonction: "Gestionnaire",
     structure: "CRDC Île-de-France",
     initiales: "MD",
   },
