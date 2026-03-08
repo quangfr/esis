@@ -190,7 +190,7 @@ export function ReportsPage() {
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6">
+            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-6">
               <p className="text-sm font-semibold text-blue-900">Lecture nationale par défaut</p>
               <div className="mt-4 space-y-3">
                 {nationalNarrative.map((item) => (

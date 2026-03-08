@@ -868,7 +868,7 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
           <div className="grid grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] gap-6">
             <div className="space-y-6">
               <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                <div className="border-b border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_34%),linear-gradient(135deg,#ffffff,#f8fbff)] p-6">
+                <div className="border-b border-slate-200 bg-slate-50 p-6">
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <div className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-slate-600 shadow-sm">
