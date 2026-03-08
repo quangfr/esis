@@ -80,6 +80,7 @@ export function ReportsPage() {
           </div>
           <div className="flex flex-wrap gap-3">
             <select
+              id="reports-date-range-select"
               className="rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
@@ -90,6 +91,7 @@ export function ReportsPage() {
               <option value="1year">Année en cours</option>
             </select>
             <select
+              id="reports-benchmark-select"
               className="rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={benchmark}
               onChange={(e) => setBenchmark(e.target.value as BenchmarkKey)}
@@ -100,11 +102,11 @@ export function ReportsPage() {
                 </option>
               ))}
             </select>
-            <button className="flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-50">
+            <button id="reports-filters-button" className="flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-50">
               <Filter className="h-4 w-4" />
               Filtres
             </button>
-            <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+            <button id="reports-export-button" className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
               <Download className="h-4 w-4" />
               Exporter
             </button>

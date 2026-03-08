@@ -158,7 +158,7 @@ export function SettingsPage() {
                 </span>
               </div>
             </div>
-            <button className="mt-6 w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+            <button id="settings-manage-users-button" className="mt-6 w-full px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
               Gérer les utilisateurs
             </button>
           </div>
@@ -190,7 +190,7 @@ export function SettingsPage() {
                 </p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" defaultChecked />
+                <input id="settings-notifications-results-toggle" type="checkbox" className="sr-only peer" defaultChecked />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
@@ -202,7 +202,7 @@ export function SettingsPage() {
                 </p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" defaultChecked />
+                <input id="settings-notifications-reminders-toggle" type="checkbox" className="sr-only peer" defaultChecked />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
@@ -214,7 +214,7 @@ export function SettingsPage() {
                 </p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" defaultChecked />
+                <input id="settings-notifications-security-toggle" type="checkbox" className="sr-only peer" defaultChecked />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
             </div>
@@ -241,7 +241,7 @@ export function SettingsPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Centre régional
               </label>
-              <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select id="settings-region-center-select" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option>CRDC Île-de-France</option>
                 <option>CRDC Auvergne-Rhône-Alpes</option>
                 <option>CRDC Nouvelle-Aquitaine</option>
@@ -253,7 +253,7 @@ export function SettingsPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Département
               </label>
-              <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select id="settings-region-department-select" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option>75 - Paris</option>
                 <option>92 - Hauts-de-Seine</option>
                 <option>93 - Seine-Saint-Denis</option>
@@ -267,6 +267,7 @@ export function SettingsPage() {
               <div className="space-y-2">
                 <label className="flex items-center gap-2">
                   <input
+                    id="settings-screening-breast-checkbox"
                     type="checkbox"
                     defaultChecked
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -275,6 +276,7 @@ export function SettingsPage() {
                 </label>
                 <label className="flex items-center gap-2">
                   <input
+                    id="settings-screening-colorectal-checkbox"
                     type="checkbox"
                     defaultChecked
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
@@ -283,6 +285,7 @@ export function SettingsPage() {
                 </label>
                 <label className="flex items-center gap-2">
                   <input
+                    id="settings-screening-cervix-checkbox"
                     type="checkbox"
                     defaultChecked
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"

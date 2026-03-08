@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
+import { toTestId } from "../lib/test-ids";
 
 const FOLDERS: Array<MessageThread["boite"]> = ["Réception", "Envoyés", "Brouillons", "Archives"];
 
@@ -59,19 +60,20 @@ function ComposeDialog({
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent id="messaging-compose-dialog" className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Nouveau message</DialogTitle>
-          <DialogDescription>
+          <DialogTitle id="messaging-compose-dialog-title">Nouveau message</DialogTitle>
+          <DialogDescription id="messaging-compose-dialog-description">
             Rédaction sécurisée avec chiffrement, pièces jointes tracées et journalisation d'accès.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <label className="space-y-2 text-sm text-gray-700">
-              <span className="font-medium">Destinataire</span>
+            <label id="messaging-compose-recipient-label" className="space-y-2 text-sm text-gray-700">
+              <span id="messaging-compose-recipient-label-text" className="font-medium">Destinataire</span>
               <input
+                id="messaging-compose-recipient-input"
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Nom ou groupe"
                 defaultValue={
@@ -83,9 +85,9 @@ function ComposeDialog({
                 }
               />
             </label>
-            <label className="space-y-2 text-sm text-gray-700">
-              <span className="font-medium">Niveau de sécurité</span>
-              <select className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <label id="messaging-compose-security-label" className="space-y-2 text-sm text-gray-700">
+              <span id="messaging-compose-security-label-text" className="font-medium">Niveau de sécurité</span>
+              <select id="messaging-compose-security-select" className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option>Messagerie sécurisée HDS</option>
                 <option>Pièce jointe avec accès temporaire</option>
                 <option>Partage interne uniquement</option>
@@ -93,18 +95,20 @@ function ComposeDialog({
             </label>
           </div>
 
-          <label className="space-y-2 text-sm text-gray-700 block">
-            <span className="font-medium">Sujet</span>
+          <label id="messaging-compose-subject-label" className="space-y-2 text-sm text-gray-700 block">
+            <span id="messaging-compose-subject-label-text" className="font-medium">Sujet</span>
             <input
+              id="messaging-compose-subject-input"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Objet du message"
               defaultValue={ROLE_COMPOSE_HINTS[role][0]}
             />
           </label>
 
-          <label className="space-y-2 text-sm text-gray-700 block">
-            <span className="font-medium">Contenu</span>
+          <label id="messaging-compose-body-label" className="space-y-2 text-sm text-gray-700 block">
+            <span id="messaging-compose-body-label-text" className="font-medium">Contenu</span>
             <textarea
+              id="messaging-compose-body-textarea"
               className="min-h-32 w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               defaultValue="Bonjour, merci de consulter ce message dans votre espace sécurisé. Les informations sensibles restent accessibles avec authentification renforcée."
             />
@@ -126,10 +130,10 @@ function ComposeDialog({
         </div>
 
         <DialogFooter>
-          <button className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-50" onClick={onClose}>
+          <button id="messaging-compose-cancel-button" className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-50" onClick={onClose}>
             Annuler
           </button>
-          <button className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700" onClick={onClose}>
+          <button id="messaging-compose-send-button" className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700" onClick={onClose}>
             Envoyer
           </button>
         </DialogFooter>
@@ -179,6 +183,7 @@ export function MessagingPage() {
               </p>
             </div>
             <button
+              id="messaging-compose-open-button"
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
               onClick={() => setComposeOpen(true)}
             >
@@ -208,6 +213,7 @@ export function MessagingPage() {
                 {FOLDERS.map((item) => (
                   <button
                     key={item}
+                    id={toTestId("messaging-folder-button", item)}
                     className={`w-full rounded-lg px-4 py-3 text-left text-sm transition-colors ${
                       folder === item ? "bg-blue-50 text-blue-700 font-medium" : "hover:bg-gray-50 text-gray-700"
                     }`}
@@ -250,6 +256,7 @@ export function MessagingPage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
+                    id="messaging-search-input"
                     type="text"
                     value={searchTerm}
                     onChange={(event) => setSearchTerm(event.target.value)}
@@ -263,6 +270,7 @@ export function MessagingPage() {
                 {inbox.map((message) => (
                   <button
                     key={message.id}
+                    id={toTestId("messaging-thread-button", message.id)}
                     className={`w-full p-4 text-left hover:bg-gray-50 ${
                       currentMessage?.id === message.id ? "bg-blue-50/60" : ""
                     }`}
@@ -335,7 +343,10 @@ export function MessagingPage() {
                               <p className="text-sm text-gray-500">{piece.taille}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <button className="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-white">
+                              <button
+                                id={toTestId("messaging-attachment-download-button", piece.nom)}
+                                className="rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-white"
+                              >
                                 <Download className="w-4 h-4" />
                               </button>
                             </div>
@@ -359,10 +370,10 @@ export function MessagingPage() {
                   </div>
 
                   <div className="mt-6 flex gap-3">
-                    <button className="flex-1 rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-50">
+                    <button id="messaging-archive-button" className="flex-1 rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-50">
                       Archiver
                     </button>
-                    <button className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 flex items-center justify-center gap-2">
+                    <button id="messaging-reply-button" className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 flex items-center justify-center gap-2">
                       <Send className="w-4 h-4" />
                       Répondre
                     </button>

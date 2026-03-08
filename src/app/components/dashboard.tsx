@@ -19,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { toTestId } from "../lib/test-ids";
 
 interface NavItem {
   to: string;
@@ -87,6 +88,7 @@ export function Dashboard() {
               <NavLink
                 key={item.to}
                 to={item.to}
+                id={toTestId("nav", item.label)}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     isActive || (pathname === "/" && item.to === "/patients")
@@ -116,7 +118,10 @@ export function Dashboard() {
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center justify-center gap-2">
+                <button
+                  id="dashboard-role-switcher-button"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center justify-center gap-2"
+                >
                   <UserRound className="w-4 h-4" />
                   {activeProfile.fonction}
                   <ChevronDown className="w-4 h-4" />
@@ -125,19 +130,22 @@ export function Dashboard() {
               <DropdownMenuContent className="w-56" align="end">
                 <DropdownMenuLabel>Changer de vue</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setRole("manager")}>
+                <DropdownMenuItem id="dashboard-role-option-manager" onClick={() => setRole("manager")}>
                   Gestionnaire
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setRole("patient")}>
+                <DropdownMenuItem id="dashboard-role-option-patient" onClick={() => setRole("patient")}>
                   Patiente suivie
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setRole("practitioner")}>
+                <DropdownMenuItem id="dashboard-role-option-practitioner" onClick={() => setRole("practitioner")}>
                   Praticienne référente
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <button className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-2">
+            <button
+              id="dashboard-logout-button"
+              className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-2"
+            >
               <LogOut className="w-4 h-4" />
               Sortie
             </button>

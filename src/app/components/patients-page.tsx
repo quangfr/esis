@@ -35,6 +35,7 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { toTestId } from "../lib/test-ids";
 
 type Program = Patient["programs"][number];
 type ProgramDocument = Program["documents"][number];
@@ -305,10 +306,10 @@ function CreationWorkflowDialog({
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent id={toTestId("patients-flow-dialog", flow)} className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{FLOW_LABELS[flow]}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle id={toTestId("patients-flow-dialog-title", flow)}>{FLOW_LABELS[flow]}</DialogTitle>
+          <DialogDescription id={toTestId("patients-flow-dialog-description", flow)}>
             Parcours guidé en plusieurs étapes pour conserver le même niveau de qualité de saisie.
           </DialogDescription>
         </DialogHeader>
@@ -359,12 +360,14 @@ function CreationWorkflowDialog({
 
         <DialogFooter>
           <button
+            id={toTestId("patients-flow-back-button", flow, step)}
             className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-50"
             onClick={() => (step === 0 ? onClose() : setStep(step - 1))}
           >
             {step === 0 ? "Annuler" : "Retour"}
           </button>
           <button
+            id={toTestId("patients-flow-next-button", flow, step)}
             className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             onClick={() => (isLast ? onClose() : setStep(step + 1))}
           >
@@ -419,11 +422,12 @@ function ManagerWorkspace({
             </p>
           </div>
           <div className="flex flex-wrap gap-3 justify-end">
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+            <button id="patients-export-button" className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
               <Download className="w-4 h-4" />
               Exporter
             </button>
             <button
+              id="patients-create-patient-button"
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
               onClick={() => onOpenFlow("patient")}
             >
@@ -445,6 +449,7 @@ function ManagerWorkspace({
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
+              id="patients-search-input"
               type="text"
               placeholder="Rechercher par nom, prénom ou NIR..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -452,7 +457,7 @@ function ManagerWorkspace({
               onChange={(event) => setSearchTerm(event.target.value)}
             />
           </div>
-          <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+          <button id="patients-filters-button" className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
             <Filter className="w-4 h-4" />
             Filtres
           </button>
@@ -499,6 +504,7 @@ function ManagerWorkspace({
                   {filteredPatients.slice(0, 16).map((patient) => (
                     <tr
                       key={patient.id}
+                      id={toTestId("patients-row", patient.id)}
                       className={`cursor-pointer hover:bg-gray-50 ${
                         selectedPatient.id === patient.id ? "bg-blue-50/60" : ""
                       }`}
@@ -527,7 +533,7 @@ function ManagerWorkspace({
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">{patient.prochainRappel}</td>
                       <td className="px-6 py-4 text-right">
-                        <button className="text-gray-400 hover:text-gray-600">
+                        <button id={toTestId("patients-row-actions-button", patient.id)} className="text-gray-400 hover:text-gray-600">
                           <MoreHorizontal className="w-5 h-5" />
                         </button>
                       </td>
@@ -673,10 +679,10 @@ function DocumentPreviewDialog({
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent id="patients-document-dialog" className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>{document.titre}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle id="patients-document-dialog-title">{document.titre}</DialogTitle>
+          <DialogDescription id="patients-document-dialog-description">
             Aperçu document factice avec données simulées pour la démonstration produit.
           </DialogDescription>
         </DialogHeader>
@@ -737,10 +743,10 @@ function DocumentPreviewDialog({
         </div>
 
         <DialogFooter>
-          <button className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-50" onClick={onClose}>
+          <button id="patients-document-close-button" className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-50" onClick={onClose}>
             Fermer
           </button>
-          <button className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700" onClick={onClose}>
+          <button id="patients-document-download-button" className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700" onClick={onClose}>
             Télécharger
           </button>
         </DialogFooter>
@@ -767,10 +773,10 @@ function FormPreviewDialog({
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent id="patients-form-dialog" className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>{formulaire.titre}</DialogTitle>
-          <DialogDescription>Modal factice de renseignement pour illustrer la saisie patient avant examen.</DialogDescription>
+          <DialogTitle id="patients-form-dialog-title">{formulaire.titre}</DialogTitle>
+          <DialogDescription id="patients-form-dialog-description">Modal factice de renseignement pour illustrer la saisie patient avant examen.</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-6 md:grid-cols-[1.15fr_minmax(260px,1fr)]">
@@ -798,9 +804,10 @@ function FormPreviewDialog({
               <p className="text-sm font-semibold text-gray-900">Champs simulés</p>
               <div className="mt-3 space-y-3">
                 {formulaire.champs.map((champ, index) => (
-                  <label key={champ} className="block space-y-2 text-sm text-gray-700">
-                    <span className="font-medium">{champ}</span>
+                  <label key={champ} id={toTestId("patients-form-field-label", formulaire.id, champ)} className="block space-y-2 text-sm text-gray-700">
+                    <span id={toTestId("patients-form-field-label-text", formulaire.id, champ)} className="font-medium">{champ}</span>
                     <input
+                      id={toTestId("patients-form-field-input", formulaire.id, index)}
                       className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       defaultValue={
                         index === 0
@@ -838,10 +845,10 @@ function FormPreviewDialog({
         </div>
 
         <DialogFooter>
-          <button className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-50" onClick={onClose}>
+          <button id="patients-form-close-button" className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-50" onClick={onClose}>
             Fermer
           </button>
-          <button className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700" onClick={onClose}>
+          <button id="patients-form-save-button" className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700" onClick={onClose}>
             Enregistrer la simulation
           </button>
         </DialogFooter>
@@ -933,7 +940,7 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                       const Icon = getProgramIcon(program.type);
                       const accent = getProgramAccent(program.type);
                       return (
-                        <TabsTrigger key={program.type} value={program.type} className="gap-2">
+                        <TabsTrigger id={toTestId("patients-program-tab", program.type)} key={program.type} value={program.type} className="gap-2">
                           <Icon className={`h-4 w-4 ${accent.strong}`} />
                           {program.type}
                         </TabsTrigger>
@@ -1005,6 +1012,7 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                               {program.documents.map((document) => (
                                 <button
                                   key={document.id}
+                                  id={toTestId("patients-document-button", program.type, document.id)}
                                   className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-left hover:bg-white hover:shadow-sm transition-all"
                                   onClick={() => setSelectedDocument(document)}
                                 >
@@ -1039,6 +1047,7 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                               {program.formulaires.map((formulaire) => (
                                 <button
                                   key={formulaire.id}
+                                  id={toTestId("patients-form-button", program.type, formulaire.id)}
                                   className="w-full rounded-xl border border-gray-200 px-4 py-4 text-left transition-all hover:border-blue-200 hover:bg-blue-50/50"
                                   onClick={() => setSelectedForm({ formulaire, program })}
                                 >
@@ -1253,6 +1262,7 @@ function QuickActionCard({
 }) {
   return (
     <button
+      id={toTestId("patients-quick-action-button", title)}
       className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-left hover:bg-gray-50 transition-colors"
       onClick={onClick}
     >
@@ -1269,9 +1279,10 @@ function QuickActionCard({
 function WorkflowFieldInput({ field }: { field: WorkflowField }) {
   if (field.kind === "select") {
     return (
-      <label className="space-y-2 text-sm text-gray-700">
-        <span className="font-medium">{field.label}</span>
+      <label id={toTestId("patients-workflow-label", field.label)} className="space-y-2 text-sm text-gray-700">
+        <span id={toTestId("patients-workflow-label-text", field.label)} className="font-medium">{field.label}</span>
         <select
+          id={toTestId("patients-workflow-select", field.label)}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           defaultValue={field.defaultValue}
         >
@@ -1285,9 +1296,10 @@ function WorkflowFieldInput({ field }: { field: WorkflowField }) {
 
   if (field.kind === "textarea") {
     return (
-      <label className="col-span-2 space-y-2 text-sm text-gray-700">
-        <span className="font-medium">{field.label}</span>
+      <label id={toTestId("patients-workflow-label", field.label)} className="col-span-2 space-y-2 text-sm text-gray-700">
+        <span id={toTestId("patients-workflow-label-text", field.label)} className="font-medium">{field.label}</span>
         <textarea
+          id={toTestId("patients-workflow-textarea", field.label)}
           className="min-h-28 w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder={field.placeholder}
           defaultValue={field.defaultValue}
@@ -1297,9 +1309,10 @@ function WorkflowFieldInput({ field }: { field: WorkflowField }) {
   }
 
   return (
-    <label className="space-y-2 text-sm text-gray-700">
-      <span className="font-medium">{field.label}</span>
+    <label id={toTestId("patients-workflow-label", field.label)} className="space-y-2 text-sm text-gray-700">
+      <span id={toTestId("patients-workflow-label-text", field.label)} className="font-medium">{field.label}</span>
       <input
+        id={toTestId("patients-workflow-input", field.label)}
         type={field.kind === "date" ? "date" : "text"}
         className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         placeholder={field.placeholder}

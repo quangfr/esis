@@ -211,7 +211,7 @@ export function ScreeningPage() {
               Lecture croisée des tendances par cancer, avec impact des résultats sur les examens de second niveau.
             </p>
           </div>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+          <button id="screening-new-campaign-button" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
             <Calendar className="w-4 h-4" />
             Nouvelle campagne
           </button>
