@@ -12,6 +12,7 @@ import {
   Bar,
 } from "recharts";
 import { Activity, Calendar, Download, Filter, TrendingUp, Users } from "lucide-react";
+import { toTestId } from "../lib/test-ids";
 
 type BenchmarkKey = "national" | "auvergne" | "nouvelle-aquitaine" | "occitanie";
 
@@ -115,8 +116,9 @@ export function ReportsPage() {
       </div>
 
       <div className="flex-1 space-y-6 p-8">
-        <div className="grid grid-cols-5 gap-6">
+        <div id="reports-kpis-section" className="grid grid-cols-5 gap-6">
           <KpiCard
+            id="reports-kpi-participation"
             icon={TrendingUp}
             iconClassName="bg-blue-100 text-blue-700"
             label="Participation"
@@ -124,6 +126,7 @@ export function ReportsPage() {
             comparison={`+${summary.participation.delta.toFixed(1)} pts vs ${BENCHMARK_LABELS[benchmark]}`}
           />
           <KpiCard
+            id="reports-kpi-screenings"
             icon={Activity}
             iconClassName="bg-emerald-100 text-emerald-700"
             label="Dépistages réalisés"
@@ -131,6 +134,7 @@ export function ReportsPage() {
             comparison={`+${(summary.depistages.current - summary.depistages.reference).toLocaleString()} vs ${BENCHMARK_LABELS[benchmark]}`}
           />
           <KpiCard
+            id="reports-kpi-invitations"
             icon={Calendar}
             iconClassName="bg-violet-100 text-violet-700"
             label="Invitations envoyées"
@@ -138,6 +142,7 @@ export function ReportsPage() {
             comparison={`+${(summary.invitations.current - summary.invitations.reference).toLocaleString()} vs ${BENCHMARK_LABELS[benchmark]}`}
           />
           <KpiCard
+            id="reports-kpi-followup"
             icon={Users}
             iconClassName="bg-amber-100 text-amber-700"
             label="Suivi post-dépistage"
@@ -145,6 +150,7 @@ export function ReportsPage() {
             comparison={`+${(summary.suivi.current - summary.suivi.reference).toFixed(1)} pts vs ${BENCHMARK_LABELS[benchmark]}`}
           />
           <KpiCard
+            id="reports-kpi-delay"
             icon={TrendingUp}
             iconClassName="bg-rose-100 text-rose-700"
             label="Délai moyen traitement"
@@ -153,8 +159,8 @@ export function ReportsPage() {
           />
         </div>
 
-        <div className="grid grid-cols-[minmax(0,1.8fr)_minmax(320px,1fr)] gap-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+        <div id="reports-trends-layout" className="grid grid-cols-[minmax(0,1.8fr)_minmax(320px,1fr)] gap-6">
+          <div id="reports-trend-chart-card" className="rounded-2xl border border-slate-200 bg-white p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">Tendance de participation</h3>
@@ -191,8 +197,8 @@ export function ReportsPage() {
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-6">
+          <div id="reports-side-analysis-section" className="space-y-6">
+            <div id="reports-national-narrative-card" className="rounded-2xl border border-blue-100 bg-blue-50 p-6">
               <p className="text-sm font-semibold text-blue-900">Lecture nationale par défaut</p>
               <div className="mt-4 space-y-3">
                 {nationalNarrative.map((item) => (
@@ -203,7 +209,7 @@ export function ReportsPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6">
+            <div id="reports-key-gap-card" className="rounded-2xl border border-slate-200 bg-white p-6">
               <h3 className="text-lg font-bold text-slate-900">Écart clé</h3>
               <p className="mt-4 text-4xl font-bold text-blue-700">+{summary.participation.delta.toFixed(1)} pts</p>
               <p className="mt-2 text-sm text-slate-600">
@@ -213,8 +219,8 @@ export function ReportsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-[minmax(0,1.3fr)_minmax(340px,1fr)] gap-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+        <div id="reports-comparison-layout" className="grid grid-cols-[minmax(0,1.3fr)_minmax(340px,1fr)] gap-6">
+          <div id="reports-program-comparison-card" className="rounded-2xl border border-slate-200 bg-white p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">Comparaison par programme</h3>
@@ -241,11 +247,12 @@ export function ReportsPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div id="reports-crdc-comparison-card" className="rounded-2xl border border-slate-200 bg-white p-6">
             <h3 className="text-lg font-bold text-slate-900">Comparatif CRDC</h3>
             <div className="mt-4 space-y-3">
               {crdcComparisonRows.map((row, index) => (
                 <div
+                  id={toTestId("reports-crdc-row", row.label)}
                   key={row.label}
                   className={`rounded-xl border px-4 py-4 ${
                     index === 0 ? "border-blue-200 bg-blue-50/70" : index === 1 ? "border-emerald-200 bg-emerald-50/60" : "border-slate-200 bg-slate-50"
@@ -273,12 +280,14 @@ export function ReportsPage() {
 }
 
 function KpiCard({
+  id,
   icon: Icon,
   iconClassName,
   label,
   value,
   comparison,
 }: {
+  id: string;
   icon: typeof TrendingUp;
   iconClassName: string;
   label: string;
@@ -286,7 +295,7 @@ function KpiCard({
   comparison: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6">
+    <div id={id} className="rounded-2xl border border-slate-200 bg-white p-6">
       <div className="flex items-center justify-between gap-4">
         <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconClassName}`}>
           <Icon className="h-5 w-5" />

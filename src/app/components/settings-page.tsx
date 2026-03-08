@@ -14,9 +14,9 @@ export function SettingsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8 space-y-6">
+      <div id="settings-content" className="flex-1 p-8 space-y-6">
         {/* Security Settings */}
-        <div className="bg-white rounded-lg border border-gray-200">
+        <div id="settings-security-card" className="bg-white rounded-lg border border-gray-200">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -108,7 +108,7 @@ export function SettingsPage() {
         </div>
 
         {/* User Management */}
-        <div className="bg-white rounded-lg border border-gray-200">
+        <div id="settings-users-card" className="bg-white rounded-lg border border-gray-200">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -165,7 +165,7 @@ export function SettingsPage() {
         </div>
 
         {/* Notifications */}
-        <div className="bg-white rounded-lg border border-gray-200">
+        <div id="settings-notifications-card" className="bg-white rounded-lg border border-gray-200">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -222,7 +222,7 @@ export function SettingsPage() {
         </div>
 
         {/* Regional Settings */}
-        <div className="bg-white rounded-lg border border-gray-200">
+        <div id="settings-regional-card" className="bg-white rounded-lg border border-gray-200">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -298,7 +298,7 @@ export function SettingsPage() {
         </div>
 
         {/* System Info */}
-        <div className="bg-blue-50 rounded-lg border border-blue-200 p-6">
+        <div id="settings-system-info-card" className="bg-blue-50 rounded-lg border border-blue-200 p-6">
           <h3 className="font-medium text-blue-900 mb-4">Informations système</h3>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>

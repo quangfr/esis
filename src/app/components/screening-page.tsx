@@ -1,5 +1,6 @@
 import { Activity, AlertTriangle, Calendar, CheckCircle2, Microscope, TrendingUp } from "lucide-react";
 import { useAppState, type Patient, type ScreeningProgram } from "../app-state";
+import { toTestId } from "../lib/test-ids";
 
 function aggregateByType(patients: Patient[]) {
   const programs = patients.flatMap((patient) =>
@@ -31,16 +32,18 @@ function aggregateByType(patients: Patient[]) {
 }
 
 function ProgramCard({
+  id,
   title,
   description,
   value,
 }: {
+  id: string;
   title: string;
   description: string;
   value: string;
 }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
+    <div id={id} className="rounded-lg border border-gray-200 bg-white p-6">
       <p className="text-sm text-gray-500">{title}</p>
       <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
       <p className="mt-3 text-sm text-gray-600">{description}</p>
@@ -50,7 +53,7 @@ function ProgramCard({
 
 function ProgramDetail({ program }: { program: ScreeningProgram }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
+    <div id={toTestId("screening-program-detail", program.type)} className="rounded-lg border border-gray-200 bg-white p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-lg font-bold text-gray-900">{program.type}</h3>
@@ -91,13 +94,15 @@ export function ScreeningPage() {
         </div>
 
         <div className="p-8 space-y-6">
-          <div className="grid grid-cols-3 gap-6">
+          <div id="screening-patient-kpis-section" className="grid grid-cols-3 gap-6">
             <ProgramCard
+              id="screening-patient-kpi-programs"
               title="Programmes actifs"
               value={String(activePatient.programs.length)}
               description="Suivis parallèles affichés selon votre âge, vos antécédents et vos derniers résultats."
             />
             <ProgramCard
+              id="screening-patient-kpi-exams"
               title="Examens complémentaires"
               value={String(
                 activePatient.programs.flatMap((program) => program.examensProposes).filter((exam) =>
@@ -107,6 +112,7 @@ export function ScreeningPage() {
               description="Examens de second niveau préparés automatiquement lorsque les résultats le justifient."
             />
             <ProgramCard
+              id="screening-patient-kpi-forms"
               title="Formulaires en attente"
               value={String(
                 activePatient.programs.flatMap((program) => program.formulaires).filter((item) => item.statut !== "Complet").length,
@@ -115,7 +121,7 @@ export function ScreeningPage() {
             />
           </div>
 
-          <div className="grid gap-6">
+          <div id="screening-patient-programs-section" className="grid gap-6">
             {activePatient.programs.map((program) => (
               <ProgramDetail key={program.type} program={program} />
             ))}
@@ -149,18 +155,21 @@ export function ScreeningPage() {
         </div>
 
         <div className="p-8 space-y-6">
-          <div className="grid grid-cols-4 gap-6">
+          <div id="screening-practitioner-kpis-section" className="grid grid-cols-4 gap-6">
             <ProgramCard
+              id="screening-practitioner-kpi-patients"
               title="Patients suivis"
               value={String(practitionerPatients.length)}
               description="Patients rattachés à votre file active."
             />
             <ProgramCard
+              id="screening-practitioner-kpi-secondary-exams"
               title="Examens secondaires"
               value={String(secondaryExams.length)}
               description="Échographies, coloscopies et colposcopies à organiser."
             />
             <ProgramCard
+              id="screening-practitioner-kpi-forms"
               title="Formulaires non complets"
               value={String(
                 practitionerPatients
@@ -170,6 +179,7 @@ export function ScreeningPage() {
               description="Préparations d'examen à contrôler avant prise de rendez-vous."
             />
             <ProgramCard
+              id="screening-practitioner-kpi-surveillance"
               title="Patients à surveillance"
               value={String(
                 practitionerPatients.flatMap((patient) => patient.programs).filter((program) => program.niveauRisque !== "Standard").length,
@@ -178,7 +188,7 @@ export function ScreeningPage() {
             />
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div id="screening-practitioner-exams-card" className="bg-white rounded-lg border border-gray-200 p-6">
             <h2 className="text-lg font-bold text-gray-900">Examens à organiser</h2>
             <div className="mt-4 space-y-3">
               {secondaryExams.slice(0, 10).map((item) => (
@@ -219,32 +229,36 @@ export function ScreeningPage() {
       </div>
 
       <div className="p-8 space-y-6">
-        <div className="grid grid-cols-4 gap-6">
+        <div id="screening-manager-kpis-section" className="grid grid-cols-4 gap-6">
           <ProgramCard
+            id="screening-manager-kpi-population"
             title="Population suivie"
             value={String(patients.length)}
             description="Patients synthétisés dans les trois filières de dépistage."
           />
           <ProgramCard
+            id="screening-manager-kpi-secondary-exams"
             title="Examens secondaires"
             value={String(aggregated.reduce((sum, item) => sum + item.nextExamens, 0))}
             description="Examens induits par les derniers résultats cliniquement significatifs."
           />
           <ProgramCard
+            id="screening-manager-kpi-forms"
             title="Formulaires à relancer"
             value={String(aggregated.reduce((sum, item) => sum + item.pendingForms, 0))}
             description="Préparations d'examens encore incomplètes."
           />
           <ProgramCard
+            id="screening-manager-kpi-expertise"
             title="Situations à expertise"
             value={String(aggregated.reduce((sum, item) => sum + item.escalations, 0))}
             description="Programmes sortant du rythme standard et nécessitant arbitrage médical."
           />
         </div>
 
-        <div className="grid grid-cols-3 gap-6">
+        <div id="screening-manager-program-cards-section" className="grid grid-cols-3 gap-6">
           {aggregated.map((item) => (
-            <div key={item.type} className="rounded-lg border border-gray-200 bg-white p-6">
+            <div id={toTestId("screening-manager-program-card", item.type)} key={item.type} className="rounded-lg border border-gray-200 bg-white p-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-gray-900">{item.type}</h2>
                 <Activity className="w-5 h-5 text-blue-600" />

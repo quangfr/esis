@@ -13,6 +13,7 @@ import {
   SquarePen,
   Star,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useAppState, type MessageThread, type UserRole } from "../app-state";
 import {
   Dialog,
@@ -49,13 +50,31 @@ function ComposeDialog({
   open,
   onClose,
   role,
+  onSend,
 }: {
   open: boolean;
   onClose: () => void;
   role: UserRole;
+  onSend: (message: Pick<MessageThread, "destinataire" | "sujet" | "contenu">) => Promise<void>;
 }) {
+  const [destinataire, setDestinataire] = useState(
+    role === "manager" ? "Dr. Sophie Leroy" : role === "patient" ? "CRDC Île-de-France" : "Marie Dubois",
+  );
+  const [sujet, setSujet] = useState(ROLE_COMPOSE_HINTS[role][0]);
+  const [contenu, setContenu] = useState(
+    "Bonjour, merci de consulter ce message dans votre espace sécurisé. Les informations sensibles restent accessibles avec authentification renforcée.",
+  );
+
   if (!open) {
     return null;
+  }
+
+  async function handleSend() {
+    await onSend({ destinataire, sujet, contenu });
+    toast.success("Message envoyé", {
+      description: "Le message a été enregistré dans IndexedDB.",
+    });
+    onClose();
   }
 
   return (
@@ -76,13 +95,8 @@ function ComposeDialog({
                 id="messaging-compose-recipient-input"
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Nom ou groupe"
-                defaultValue={
-                  role === "manager"
-                    ? "Dr. Sophie Leroy"
-                    : role === "patient"
-                    ? "CRDC Île-de-France"
-                    : "Marie Dubois"
-                }
+                value={destinataire}
+                onChange={(event) => setDestinataire(event.target.value)}
               />
             </label>
             <label id="messaging-compose-security-label" className="space-y-2 text-sm text-gray-700">
@@ -101,7 +115,8 @@ function ComposeDialog({
               id="messaging-compose-subject-input"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Objet du message"
-              defaultValue={ROLE_COMPOSE_HINTS[role][0]}
+              value={sujet}
+              onChange={(event) => setSujet(event.target.value)}
             />
           </label>
 
@@ -110,7 +125,8 @@ function ComposeDialog({
             <textarea
               id="messaging-compose-body-textarea"
               className="min-h-32 w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              defaultValue="Bonjour, merci de consulter ce message dans votre espace sécurisé. Les informations sensibles restent accessibles avec authentification renforcée."
+              value={contenu}
+              onChange={(event) => setContenu(event.target.value)}
             />
           </label>
 
@@ -133,7 +149,7 @@ function ComposeDialog({
           <button id="messaging-compose-cancel-button" className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-50" onClick={onClose}>
             Annuler
           </button>
-          <button id="messaging-compose-send-button" className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700" onClick={onClose}>
+          <button id="messaging-compose-send-button" className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700" onClick={() => void handleSend()}>
             Envoyer
           </button>
         </DialogFooter>
@@ -143,7 +159,7 @@ function ComposeDialog({
 }
 
 export function MessagingPage() {
-  const { role, messages } = useAppState();
+  const { role, messages, activeProfile, createMessage, updateMessage } = useAppState();
   const [searchTerm, setSearchTerm] = useState("");
   const [folder, setFolder] = useState<MessageThread["boite"]>("Réception");
   const [selectedMessage, setSelectedMessage] = useState<MessageThread | null>(null);
@@ -167,6 +183,28 @@ export function MessagingPage() {
   const unreadCount = messages.filter(
     (message) => (message.roleCible === role || message.roleCible === "all") && message.statut === "Non lu",
   ).length;
+
+  async function handleSendMessage(payload: Pick<MessageThread, "destinataire" | "sujet" | "contenu">) {
+    const now = new Date();
+    const message: MessageThread = {
+      id: `msg-${Date.now()}`,
+      sujet: payload.sujet,
+      expediteur: activeProfile.nom,
+      destinataire: payload.destinataire,
+      aperçu: payload.contenu.slice(0, 96),
+      contenu: payload.contenu,
+      date: now.toLocaleDateString("fr-FR") + " " + now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+      statut: "Envoyé",
+      boite: "Envoyés",
+      securise: true,
+      importance: "Normale",
+      roleCible: role,
+    };
+
+    await createMessage(message);
+    setFolder("Envoyés");
+    setSelectedMessage(message);
+  }
 
   return (
     <>
@@ -192,23 +230,29 @@ export function MessagingPage() {
             </button>
           </div>
 
-          <div className="mt-4 grid grid-cols-4 gap-4">
-            <InboxKpi label="Messages non lus" value={String(unreadCount)} />
+          <div id="messaging-kpis-section" className="mt-4 grid grid-cols-4 gap-4">
+            <InboxKpi id="messaging-kpi-unread" label="Messages non lus" value={String(unreadCount)} />
             <InboxKpi
+              id="messaging-kpi-secure"
               label="Messages sécurisés"
               value={String(messages.filter((message) => message.securise).length)}
             />
             <InboxKpi
+              id="messaging-kpi-attachments"
               label="Pièces jointes"
               value={String(messages.filter((message) => message.piecesJointes?.length).length)}
             />
-            <InboxKpi label="Dossiers archivés" value={String(messages.filter((message) => message.boite === "Archives").length)} />
+            <InboxKpi
+              id="messaging-kpi-archived"
+              label="Dossiers archivés"
+              value={String(messages.filter((message) => message.boite === "Archives").length)}
+            />
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden p-8">
+        <div id="messaging-layout" className="flex-1 overflow-hidden p-8">
           <div className="grid h-full grid-cols-[220px_minmax(340px,1fr)_minmax(0,1.1fr)] gap-6">
-            <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <div id="messaging-folders-panel" className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="space-y-2">
                 {FOLDERS.map((item) => (
                   <button
@@ -232,7 +276,7 @@ export function MessagingPage() {
                 ))}
               </div>
 
-              <div className="mt-6 rounded-lg bg-gray-50 p-4">
+              <div id="messaging-shortcuts-card" className="mt-6 rounded-lg bg-gray-50 p-4">
                 <p className="text-sm font-medium text-gray-900">Raccourcis</p>
                 <div className="mt-3 space-y-2 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
@@ -251,8 +295,8 @@ export function MessagingPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden flex flex-col">
-              <div className="p-4 border-b border-gray-200">
+            <div id="messaging-thread-list-panel" className="bg-white rounded-lg border border-gray-200 overflow-hidden flex flex-col">
+              <div id="messaging-search-card" className="p-4 border-b border-gray-200">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
@@ -304,7 +348,7 @@ export function MessagingPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 overflow-auto">
+            <div id="messaging-thread-detail-panel" className="bg-white rounded-lg border border-gray-200 overflow-auto">
               {currentMessage ? (
                 <div className="p-6">
                   <div className="flex items-start justify-between gap-4">
@@ -325,12 +369,12 @@ export function MessagingPage() {
                     </div>
                   </div>
 
-                  <div className="mt-6 rounded-lg bg-gray-50 p-4 text-gray-700">
+                  <div id="messaging-thread-body-card" className="mt-6 rounded-lg bg-gray-50 p-4 text-gray-700">
                     {currentMessage.contenu}
                   </div>
 
                   {currentMessage.piecesJointes && (
-                    <div className="mt-6 rounded-lg border border-gray-200 p-4">
+                    <div id="messaging-attachments-card" className="mt-6 rounded-lg border border-gray-200 p-4">
                       <p className="font-medium text-gray-900 flex items-center gap-2">
                         <Paperclip className="w-4 h-4" />
                         Pièces jointes
@@ -356,13 +400,13 @@ export function MessagingPage() {
                     </div>
                   )}
 
-                  <div className="mt-6 grid grid-cols-3 gap-4">
-                    <InfoTile icon={Clock} label="Horodatage" value={currentMessage.date} />
-                    <InfoTile icon={Mail} label="Dossier" value={currentMessage.boite} />
-                    <InfoTile icon={SquarePen} label="Action" value="Répondre rapidement" />
+                  <div id="messaging-info-tiles-section" className="mt-6 grid grid-cols-3 gap-4">
+                    <InfoTile id="messaging-info-horodatage" icon={Clock} label="Horodatage" value={currentMessage.date} />
+                    <InfoTile id="messaging-info-folder" icon={Mail} label="Dossier" value={currentMessage.boite} />
+                    <InfoTile id="messaging-info-action" icon={SquarePen} label="Action" value="Répondre rapidement" />
                   </div>
 
-                  <div className="mt-6 rounded-lg border border-green-200 bg-green-50 p-4">
+                  <div id="messaging-security-card" className="mt-6 rounded-lg border border-green-200 bg-green-50 p-4">
                     <p className="font-medium text-green-900">Garantie de sécurité</p>
                     <p className="text-sm text-green-800 mt-2">
                       Message chiffré, accès journalisé, conservation conforme HDS et contrôle du partage par authentification forte.
@@ -370,7 +414,22 @@ export function MessagingPage() {
                   </div>
 
                   <div className="mt-6 flex gap-3">
-                    <button id="messaging-archive-button" className="flex-1 rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-50">
+                    <button
+                      id="messaging-archive-button"
+                      className="flex-1 rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-50"
+                      onClick={() =>
+                        void updateMessage({
+                          ...currentMessage,
+                          boite: "Archives",
+                          statut: currentMessage.statut === "Non lu" ? "Lu" : currentMessage.statut,
+                        }).then(() => {
+                          toast.success("Message archivé", {
+                            description: "Le changement a été enregistré dans IndexedDB.",
+                          });
+                          setSelectedMessage(null);
+                        })
+                      }
+                    >
                       Archiver
                     </button>
                     <button id="messaging-reply-button" className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 flex items-center justify-center gap-2">
@@ -389,14 +448,19 @@ export function MessagingPage() {
         </div>
       </div>
 
-      <ComposeDialog open={composeOpen} onClose={() => setComposeOpen(false)} role={role} />
+      <ComposeDialog
+        open={composeOpen}
+        onClose={() => setComposeOpen(false)}
+        role={role}
+        onSend={handleSendMessage}
+      />
     </>
   );
 }
 
-function InboxKpi({ label, value }: { label: string; value: string }) {
+function InboxKpi({ id, label, value }: { id: string; label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+    <div id={id} className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
       <p className="text-sm text-gray-500">{label}</p>
       <p className="mt-1 text-2xl font-bold text-gray-900">{value}</p>
     </div>
@@ -404,16 +468,18 @@ function InboxKpi({ label, value }: { label: string; value: string }) {
 }
 
 function InfoTile({
+  id,
   icon: Icon,
   label,
   value,
 }: {
+  id: string;
   icon: typeof Mail;
   label: string;
   value: string;
 }) {
   return (
-    <div className="rounded-lg bg-gray-50 p-4">
+    <div id={id} className="rounded-lg bg-gray-50 p-4">
       <Icon className="w-4 h-4 text-blue-600" />
       <p className="mt-3 text-sm text-gray-500">{label}</p>
       <p className="font-medium text-gray-900 mt-1">{value}</p>

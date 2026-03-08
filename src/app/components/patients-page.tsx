@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -25,6 +25,7 @@ import {
   FileText,
   Microscope,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useAppState, type Patient, type Practitioner } from "../app-state";
 import {
   Dialog,
@@ -287,14 +288,107 @@ function getDocumentVectorPalette(type: ProgramDocument["type"]) {
   }
 }
 
+function formatIsoDateToDisplay(value: string) {
+  if (!value.includes("-")) {
+    return value;
+  }
+
+  const [year, month, day] = value.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function splitFullName(value: string) {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  return {
+    prenom: parts[0] || "Nouveau",
+    nom: parts.slice(1).join(" ") || "Patient",
+  };
+}
+
+function buildNewPatientFromFields(fields: Record<string, string>, practitioners: Practitioner[]): Patient {
+  const selectedPractitionerName = fields["Praticien pressenti"] || "Dr. Martin Dupont";
+  const selectedPractitioner =
+    practitioners.find(
+      (practitioner) => `Dr. ${practitioner.prenom} ${practitioner.nom}` === selectedPractitionerName,
+    ) ?? practitioners[0];
+  const { prenom, nom } = splitFullName(fields["Nom complet"] || "");
+  const id = `pt-${Date.now()}`;
+  const typeDepistage = (fields["Programme principal"] || "Sein") as Patient["typeDepistage"];
+  const canalPrefere = (fields["Canal préféré"] || "SMS") as Patient["canalPrefere"];
+  const couverture = (fields["Couverture"] || "Assurance active") as Patient["couverture"];
+  const centre = fields["Centre de rattachement"] || "CRDC Île-de-France";
+  const today = new Date().toISOString().slice(0, 10);
+
+  return {
+    id,
+    nom,
+    prenom,
+    dateNaissance: formatIsoDateToDisplay(fields["Date de naissance"] || "1968-03-15"),
+    nir: fields.NIR || `2 68 03 75 ${String(Date.now()).slice(-3)} 456 12`,
+    typeDepistage,
+    statut: "En attente",
+    derniereVisite: formatIsoDateToDisplay(today),
+    prochainRappel: formatIsoDateToDisplay(fields["Date cible d'ouverture"] || today),
+    praticienId: selectedPractitioner?.id || "pr-1",
+    centre,
+    ville: fields.Ville || "Paris",
+    telephone: fields.Téléphone || "06 12 34 56 78",
+    email: fields.Email || `${prenom.toLowerCase()}.${nom.toLowerCase().replace(/\s+/g, "-")}@example.fr`,
+    risque: "Standard",
+    canalPrefere,
+    couverture,
+    progression: 10,
+    medecinTraitant: selectedPractitioner
+      ? `Dr. ${selectedPractitioner.prenom} ${selectedPractitioner.nom}`
+      : "Dr. Martin Dupont",
+    groupeSanguin: "O+",
+    allergies: ["Aucune allergie connue"],
+    antecedents: [fields["Observations de vérification"] || "Aucun antécédent structurant renseigné"],
+    traitements: ["Aucun traitement chronique"],
+    constantes: {
+      imc: "23.0",
+      tension: "12/8",
+      frequenceCardiaque: "68 bpm",
+      saturation: "98%",
+    },
+    situationCourante: fields["Résumé de validation"] || "Dossier nouvellement créé dans le parcours de démonstration.",
+    episodes: [
+      {
+        id: `ep-${id}-1`,
+        type: typeDepistage,
+        statut: "Invitation envoyée",
+        dateOuverture: formatIsoDateToDisplay(fields["Date cible d'ouverture"] || today),
+        prochaineEtape: "Validation médicale",
+      },
+    ],
+    tasks: [],
+    enrollments: [
+      {
+        id: `enr-${id}-1`,
+        canal: "Portail",
+        statut: "Validé",
+        date: formatIsoDateToDisplay(today),
+        consentement: true,
+      },
+    ],
+    programs: [],
+  };
+}
+
 function CreationWorkflowDialog({
   flow,
+  practitioners,
+  onCreatePatient,
   onClose,
 }: {
   flow: CreationFlow;
+  practitioners: Practitioner[];
+  onCreatePatient: (patient: Patient) => Promise<void>;
   onClose: () => void;
 }) {
   const [step, setStep] = useState(0);
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!flow) {
     return null;
@@ -303,6 +397,33 @@ function CreationWorkflowDialog({
   const steps = FLOW_STEPS[flow];
   const stepFields = FLOW_FIELDS[flow][step];
   const isLast = step === steps.length - 1;
+  const resolvedFields = stepFields.map((field) => ({
+    ...field,
+    value: fieldValues[field.label] ?? field.defaultValue ?? "",
+  }));
+
+  async function handleNext() {
+    if (!isLast) {
+      setStep(step + 1);
+      return;
+    }
+
+    if (flow !== "patient") {
+      onClose();
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await onCreatePatient(buildNewPatientFromFields(fieldValues, practitioners));
+      toast.success("Patient créé", {
+        description: "Le nouveau dossier a été enregistré dans IndexedDB.",
+      });
+      onClose();
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -334,8 +455,17 @@ function CreationWorkflowDialog({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {stepFields.map((field) => (
-              <WorkflowFieldInput key={`${flow}-${step}-${field.label}`} field={field} />
+            {resolvedFields.map((field) => (
+              <WorkflowFieldInput
+                key={`${flow}-${step}-${field.label}`}
+                field={field}
+                onChange={(value) =>
+                  setFieldValues((current) => ({
+                    ...current,
+                    [field.label]: value,
+                  }))
+                }
+              />
             ))}
           </div>
 
@@ -369,9 +499,10 @@ function CreationWorkflowDialog({
           <button
             id={toTestId("patients-flow-next-button", flow, step)}
             className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-            onClick={() => (isLast ? onClose() : setStep(step + 1))}
+            onClick={() => void handleNext()}
+            disabled={isSaving}
           >
-            {isLast ? "Créer" : "Continuer"}
+            {isLast ? (isSaving ? "Création..." : "Créer") : "Continuer"}
           </button>
         </DialogFooter>
       </DialogContent>
@@ -382,14 +513,37 @@ function CreationWorkflowDialog({
 function ManagerWorkspace({
   patients,
   practitioners,
+  onUpdatePatient,
   onOpenFlow,
 }: {
   patients: Patient[];
   practitioners: Practitioner[];
+  onUpdatePatient: (patient: Patient) => Promise<void>;
   onOpenFlow: (flow: Exclude<CreationFlow, null>) => void;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPatient, setSelectedPatient] = useState<Patient>(patients[0]);
+  const [editStatus, setEditStatus] = useState<Patient["statut"]>(patients[0]?.statut ?? "En attente");
+  const [editPhone, setEditPhone] = useState(patients[0]?.telephone ?? "");
+  const [editCity, setEditCity] = useState(patients[0]?.ville ?? "");
+
+  useEffect(() => {
+    if (!selectedPatient && patients[0]) {
+      setSelectedPatient(patients[0]);
+    }
+  }, [patients, selectedPatient]);
+
+  useEffect(() => {
+    if (!selectedPatient) {
+      return;
+    }
+
+    const refreshed = patients.find((patient) => patient.id === selectedPatient.id) ?? selectedPatient;
+    setSelectedPatient(refreshed);
+    setEditStatus(refreshed.statut);
+    setEditPhone(refreshed.telephone);
+    setEditCity(refreshed.ville);
+  }, [patients, selectedPatient?.id]);
 
   const filteredPatients = useMemo(
     () =>
@@ -585,6 +739,58 @@ function ManagerWorkspace({
                 />
                 <DetailRow label="Canal préféré" value={selectedPatient.canalPrefere} />
                 <DetailRow label="Couverture" value={selectedPatient.couverture} />
+              </div>
+
+              <div className="mt-6 rounded-lg border border-gray-200 p-4">
+                <p className="text-sm font-semibold text-gray-900">Modifier la fiche</p>
+                <div className="mt-3 grid gap-3">
+                  <label className="space-y-1 text-sm text-gray-700">
+                    <span className="font-medium">Statut</span>
+                    <select
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                      value={editStatus}
+                      onChange={(event) => setEditStatus(event.target.value as Patient["statut"])}
+                    >
+                      <option>En attente</option>
+                      <option>Invité</option>
+                      <option>Examen réalisé</option>
+                      <option>Résultats disponibles</option>
+                    </select>
+                  </label>
+                  <label className="space-y-1 text-sm text-gray-700">
+                    <span className="font-medium">Téléphone</span>
+                    <input
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                      value={editPhone}
+                      onChange={(event) => setEditPhone(event.target.value)}
+                    />
+                  </label>
+                  <label className="space-y-1 text-sm text-gray-700">
+                    <span className="font-medium">Ville</span>
+                    <input
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2"
+                      value={editCity}
+                      onChange={(event) => setEditCity(event.target.value)}
+                    />
+                  </label>
+                  <button
+                    className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+                    onClick={() =>
+                      void onUpdatePatient({
+                        ...selectedPatient,
+                        statut: editStatus,
+                        telephone: editPhone,
+                        ville: editCity,
+                      }).then(() =>
+                        toast.success("Modifications enregistrées", {
+                          description: "La fiche patient a été mise à jour dans IndexedDB.",
+                        }),
+                      )
+                    }
+                  >
+                    Enregistrer les modifications
+                  </button>
+                </div>
               </div>
 
               <div className="mt-6">
@@ -848,7 +1054,16 @@ function FormPreviewDialog({
           <button id="patients-form-close-button" className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-50" onClick={onClose}>
             Fermer
           </button>
-          <button id="patients-form-save-button" className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700" onClick={onClose}>
+          <button
+            id="patients-form-save-button"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            onClick={() => {
+              toast.success("Simulation enregistrée", {
+                description: "La démonstration de formulaire a bien été validée.",
+              });
+              onClose();
+            }}
+          >
             Enregistrer la simulation
           </button>
         </DialogFooter>
@@ -1276,7 +1491,13 @@ function QuickActionCard({
   );
 }
 
-function WorkflowFieldInput({ field }: { field: WorkflowField }) {
+function WorkflowFieldInput({
+  field,
+  onChange,
+}: {
+  field: WorkflowField & { value?: string };
+  onChange: (value: string) => void;
+}) {
   if (field.kind === "select") {
     return (
       <label id={toTestId("patients-workflow-label", field.label)} className="space-y-2 text-sm text-gray-700">
@@ -1284,7 +1505,8 @@ function WorkflowFieldInput({ field }: { field: WorkflowField }) {
         <select
           id={toTestId("patients-workflow-select", field.label)}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          defaultValue={field.defaultValue}
+          value={field.value ?? field.defaultValue ?? ""}
+          onChange={(event) => onChange(event.target.value)}
         >
           {field.options.map((option) => (
             <option key={option}>{option}</option>
@@ -1302,7 +1524,8 @@ function WorkflowFieldInput({ field }: { field: WorkflowField }) {
           id={toTestId("patients-workflow-textarea", field.label)}
           className="min-h-28 w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder={field.placeholder}
-          defaultValue={field.defaultValue}
+          value={field.value ?? field.defaultValue ?? ""}
+          onChange={(event) => onChange(event.target.value)}
         />
       </label>
     );
@@ -1316,7 +1539,8 @@ function WorkflowFieldInput({ field }: { field: WorkflowField }) {
         type={field.kind === "date" ? "date" : "text"}
         className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         placeholder={field.placeholder}
-        defaultValue={field.defaultValue}
+        value={field.value ?? field.defaultValue ?? ""}
+        onChange={(event) => onChange(event.target.value)}
       />
     </label>
   );
@@ -1472,7 +1696,8 @@ function KpiCard({
 }
 
 export function PatientsPage() {
-  const { role, patients, practitioners, activePatient, activePractitioner } = useAppState();
+  const { role, patients, practitioners, activePatient, activePractitioner, createPatient, updatePatient } =
+    useAppState();
   const [flow, setFlow] = useState<CreationFlow>(null);
 
   return (
@@ -1481,6 +1706,7 @@ export function PatientsPage() {
         <ManagerWorkspace
           patients={patients}
           practitioners={practitioners}
+          onUpdatePatient={updatePatient}
           onOpenFlow={setFlow}
         />
       ) : role === "patient" ? (
@@ -1489,7 +1715,12 @@ export function PatientsPage() {
         <PractitionerWorkspace practitioner={activePractitioner} patients={patients} />
       )}
 
-      <CreationWorkflowDialog flow={flow} onClose={() => setFlow(null)} />
+      <CreationWorkflowDialog
+        flow={flow}
+        practitioners={practitioners}
+        onCreatePatient={createPatient}
+        onClose={() => setFlow(null)}
+      />
     </>
   );
 }

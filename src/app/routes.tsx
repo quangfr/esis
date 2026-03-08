@@ -1,5 +1,6 @@
 import { createHashRouter } from "react-router";
 import { Dashboard } from "./components/dashboard";
+import { DataPage } from "./components/data-page";
 import { PatientsPage } from "./components/patients-page";
 import { MessagingPage } from "./components/messaging-page";
 import { ScreeningPage } from "./components/screening-page";
@@ -16,6 +17,7 @@ export const router = createHashRouter([
       { path: "messaging", Component: MessagingPage },
       { path: "screening", Component: ScreeningPage },
       { path: "reports", Component: ReportsPage },
+      { path: "data", Component: DataPage },
       { path: "settings", Component: SettingsPage },
     ],
   },
