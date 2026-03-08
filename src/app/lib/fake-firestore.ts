@@ -1,4 +1,14 @@
-import { demoDataBundle, type DemoDataBundle, type MessageThread, type Patient, type Practitioner } from "../data/demo-data";
+import {
+  demoDataBundle,
+  type DemoDataBundle,
+  type Enrollment,
+  type Episode,
+  type MessageThread,
+  type Patient,
+  type Practitioner,
+  type ScreeningProgram,
+  type Task,
+} from "../data/demo-data";
 
 const DATABASE_NAME = "esis-fake-firestore";
 const DATABASE_VERSION = 1;
@@ -50,6 +60,16 @@ function transactionComplete(transaction: IDBTransaction) {
   });
 }
 
+async function deleteById(storeName: StoreName, id: string) {
+  const database = await openDatabase();
+  const transaction = database.transaction(storeName, "readwrite");
+  const store = transaction.objectStore(storeName);
+  store.delete(id);
+  await transactionComplete(transaction);
+  database.close();
+  return { ok: true, id };
+}
+
 async function putMany<T extends { id: string }>(storeName: StoreName, values: T[]) {
   const database = await openDatabase();
   const transaction = database.transaction(storeName, "readwrite");
@@ -66,6 +86,10 @@ async function putMany<T extends { id: string }>(storeName: StoreName, values: T
 async function putOne<T extends { id: string }>(storeName: StoreName, value: T) {
   await putMany(storeName, [value]);
   return value;
+}
+
+async function putPatient(patient: Patient) {
+  return putOne(STORE_NAMES.patients, patient);
 }
 
 async function getAll<T>(storeName: StoreName): Promise<T[]> {
@@ -103,15 +127,27 @@ async function isSeeded() {
   return Boolean(metadata);
 }
 
-function jsonResponse(body: unknown, status = 200) {
+function jsonResponse(body: unknown, status = 200, extraHeaders?: HeadersInit) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      "x-fake-backend": "indexeddb-firestore",
+      ...extraHeaders,
+    },
   });
 }
 
 function notFound() {
   return jsonResponse({ error: "Not found" }, 404);
+}
+
+function badRequest(message: string) {
+  return jsonResponse({ error: message }, 400);
+}
+
+function childNotFound(kind: string, id: string) {
+  return jsonResponse({ error: `${kind} '${id}' not found` }, 404);
 }
 
 function toCollectionPayload(bundle: DemoDataBundle) {
@@ -124,6 +160,30 @@ function toCollectionPayload(bundle: DemoDataBundle) {
     activePatientId: bundle.activePatientId,
     activePractitionerId: bundle.activePractitionerId,
   };
+}
+
+async function getPatientOrNotFound(patientId: string) {
+  const patient = await getById<Patient>(STORE_NAMES.patients, patientId);
+  return patient;
+}
+
+async function appendPatientChild<T extends { id: string }>(
+  patientId: string,
+  key: "episodes" | "tasks" | "enrollments",
+  child: T,
+) {
+  const patient = await getPatientOrNotFound(patientId);
+  if (!patient) {
+    return null;
+  }
+
+  const nextPatient = {
+    ...patient,
+    [key]: [...patient[key], child],
+  } as Patient;
+
+  await putPatient(nextPatient);
+  return child;
 }
 
 export async function seedFakeFirestore(payload: DemoDataBundle) {
@@ -200,11 +260,15 @@ export async function fakeFirestoreRequest(input: string, init?: RequestInit) {
   const method = init?.method?.toUpperCase() || "GET";
   const url = new URL(input, window.location.origin);
   const segments = url.pathname.split("/").filter(Boolean);
+  const rawBody = init?.body;
+  const body =
+    typeof rawBody === "string" && rawBody.trim().length > 0 ? JSON.parse(rawBody) : {};
 
   if (segments.length === 1 && segments[0] === "seed" && method === "POST") {
-    const rawBody = init?.body;
     const payload =
-      typeof rawBody === "string" ? (JSON.parse(rawBody) as DemoDataBundle) : demoDataBundle;
+      typeof rawBody === "string" && rawBody.trim().length > 0
+        ? (JSON.parse(rawBody) as DemoDataBundle)
+        : demoDataBundle;
     const body = await seedFakeFirestore(payload);
     return jsonResponse(body);
   }
@@ -228,19 +292,40 @@ export async function fakeFirestoreRequest(input: string, init?: RequestInit) {
     }
   }
 
-  if (segments.length === 2 && (method === "POST" || method === "PUT" || method === "PATCH")) {
-    const [collection, documentId] = segments;
-    const rawBody = init?.body;
-    const body = typeof rawBody === "string" ? JSON.parse(rawBody) : {};
+  if (segments.length === 1 && method === "POST") {
+    const [collection] = segments;
+    const documentId = typeof body.id === "string" ? body.id : "";
+
+    if (!documentId) {
+      return badRequest("POST collection requests require an 'id' field in the JSON body");
+    }
 
     if (collection === "patients") {
-      return jsonResponse(await putOne(STORE_NAMES.patients, { ...body, id: documentId } as Patient));
+      return jsonResponse(await putOne(STORE_NAMES.patients, { ...body, id: documentId } as Patient), 201);
     }
     if (collection === "messages") {
-      return jsonResponse(await putOne(STORE_NAMES.messages, { ...body, id: documentId } as MessageThread));
+      return jsonResponse(await putOne(STORE_NAMES.messages, { ...body, id: documentId } as MessageThread), 201);
     }
     if (collection === "practitioners") {
-      return jsonResponse(await putOne(STORE_NAMES.practitioners, { ...body, id: documentId } as Practitioner));
+      return jsonResponse(await putOne(STORE_NAMES.practitioners, { ...body, id: documentId } as Practitioner), 201);
+    }
+  }
+
+  if (segments.length === 2 && (method === "PUT" || method === "PATCH")) {
+    const [collection, documentId] = segments;
+
+    if (collection === "patients") {
+      const current = method === "PATCH" ? await getById<Patient>(STORE_NAMES.patients, documentId) : undefined;
+      return jsonResponse(await putOne(STORE_NAMES.patients, { ...current, ...body, id: documentId } as Patient));
+    }
+    if (collection === "messages") {
+      const current = method === "PATCH" ? await getById<MessageThread>(STORE_NAMES.messages, documentId) : undefined;
+      return jsonResponse(await putOne(STORE_NAMES.messages, { ...current, ...body, id: documentId } as MessageThread));
+    }
+    if (collection === "practitioners") {
+      const current =
+        method === "PATCH" ? await getById<Practitioner>(STORE_NAMES.practitioners, documentId) : undefined;
+      return jsonResponse(await putOne(STORE_NAMES.practitioners, { ...current, ...body, id: documentId } as Practitioner));
     }
   }
 
@@ -261,8 +346,117 @@ export async function fakeFirestoreRequest(input: string, init?: RequestInit) {
     }
   }
 
+  if (segments.length === 3 && segments[0] === "patients" && method === "GET") {
+    const [, patientId, childCollection] = segments;
+    const patient = await getPatientOrNotFound(patientId);
+    if (!patient) {
+      return notFound();
+    }
+
+    if (childCollection === "episodes") {
+      return jsonResponse(patient.episodes);
+    }
+    if (childCollection === "tasks") {
+      return jsonResponse(patient.tasks);
+    }
+    if (childCollection === "enrollments") {
+      return jsonResponse(patient.enrollments);
+    }
+    if (childCollection === "programs") {
+      return jsonResponse(patient.programs);
+    }
+  }
+
+  if (segments.length === 3 && segments[0] === "patients" && method === "POST") {
+    const [, patientId, childCollection] = segments;
+    const documentId = typeof body.id === "string" ? body.id : "";
+    if (!documentId) {
+      return badRequest("Nested POST requests require an 'id' field in the JSON body");
+    }
+
+    if (childCollection === "episodes") {
+      const created = await appendPatientChild(patientId, "episodes", { ...body, id: documentId } as Episode);
+      return created ? jsonResponse(created, 201) : notFound();
+    }
+    if (childCollection === "tasks") {
+      const created = await appendPatientChild(patientId, "tasks", { ...body, id: documentId } as Task);
+      return created ? jsonResponse(created, 201) : notFound();
+    }
+    if (childCollection === "enrollments") {
+      const created = await appendPatientChild(patientId, "enrollments", { ...body, id: documentId } as Enrollment);
+      return created ? jsonResponse(created, 201) : notFound();
+    }
+  }
+
+  if (segments.length === 4 && segments[0] === "patients" && method === "GET") {
+    const [, patientId, childCollection, childId] = segments;
+    const patient = await getPatientOrNotFound(patientId);
+    if (!patient) {
+      return notFound();
+    }
+
+    if (childCollection === "episodes") {
+      const item = patient.episodes.find((episode) => episode.id === childId);
+      return item ? jsonResponse(item) : childNotFound("episode", childId);
+    }
+    if (childCollection === "tasks") {
+      const item = patient.tasks.find((task) => task.id === childId);
+      return item ? jsonResponse(item) : childNotFound("task", childId);
+    }
+    if (childCollection === "enrollments") {
+      const item = patient.enrollments.find((enrollment) => enrollment.id === childId);
+      return item ? jsonResponse(item) : childNotFound("enrollment", childId);
+    }
+    if (childCollection === "programs") {
+      const item = patient.programs.find((program) => encodeURIComponent(program.type) === childId || program.type === childId);
+      return item ? jsonResponse(item) : childNotFound("program", childId);
+    }
+  }
+
+  if (segments.length === 5 && segments[0] === "patients" && segments[2] === "programs" && method === "GET") {
+    const [, patientId, , programId, programChild] = segments;
+    const patient = await getPatientOrNotFound(patientId);
+    if (!patient) {
+      return notFound();
+    }
+
+    const program = patient.programs.find(
+      (entry) => encodeURIComponent(entry.type) === programId || entry.type === programId,
+    );
+    if (!program) {
+      return childNotFound("program", programId);
+    }
+
+    if (programChild === "documents") {
+      return jsonResponse(program.documents);
+    }
+    if (programChild === "formulaires") {
+      return jsonResponse(program.formulaires);
+    }
+    if (programChild === "examens") {
+      return jsonResponse(program.examensProposes);
+    }
+    if (programChild === "timeline") {
+      return jsonResponse(program.parcours);
+    }
+  }
+
   if (segments.length === 1 && segments[0] === "collections" && method === "GET") {
     return jsonResponse(toCollectionPayload(await loadBootstrapFromFakeFirestore()));
+  }
+
+  if (segments.length === 2 && method === "DELETE") {
+    const [collection, documentId] = segments;
+
+    if (collection === "patients") {
+      return jsonResponse(await deleteById(STORE_NAMES.patients, documentId));
+    }
+    if (collection === "messages") {
+      return jsonResponse(await deleteById(STORE_NAMES.messages, documentId));
+    }
+    if (collection === "practitioners") {
+      return jsonResponse(await deleteById(STORE_NAMES.practitioners, documentId));
+    }
   }
 
   return notFound();

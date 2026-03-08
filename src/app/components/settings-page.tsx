@@ -4,7 +4,7 @@ export function SettingsPage() {
   return (
     <div className="h-full flex flex-col overflow-auto bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-6">
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Paramètres et Configuration</h1>
           <p className="text-gray-500 mt-1">
@@ -14,10 +14,10 @@ export function SettingsPage() {
       </div>
 
       {/* Main Content */}
-      <div id="settings-content" className="flex-1 p-8 space-y-6">
+      <div id="settings-content" className="flex-1 p-6 space-y-4">
         {/* Security Settings */}
         <div id="settings-security-card" className="bg-white rounded-lg border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-4 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                 <Shield className="w-5 h-5 text-green-600" />
@@ -30,7 +30,7 @@ export function SettingsPage() {
               </div>
             </div>
           </div>
-          <div className="p-6 space-y-6">
+          <div className="p-4 space-y-4">
             <div className="flex items-center justify-between py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <Lock className="w-5 h-5 text-gray-400" />
@@ -109,7 +109,7 @@ export function SettingsPage() {
 
         {/* User Management */}
         <div id="settings-users-card" className="bg-white rounded-lg border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-4 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                 <Users className="w-5 h-5 text-blue-600" />
@@ -124,7 +124,7 @@ export function SettingsPage() {
               </div>
             </div>
           </div>
-          <div className="p-6">
+          <div className="p-4">
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div>
@@ -166,7 +166,7 @@ export function SettingsPage() {
 
         {/* Notifications */}
         <div id="settings-notifications-card" className="bg-white rounded-lg border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-4 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                 <Bell className="w-5 h-5 text-purple-600" />
@@ -179,7 +179,7 @@ export function SettingsPage() {
               </div>
             </div>
           </div>
-          <div className="p-6 space-y-4">
+          <div className="p-4 space-y-3">
             <div className="flex items-center justify-between py-3">
               <div>
                 <p className="font-medium text-gray-900">
@@ -223,7 +223,7 @@ export function SettingsPage() {
 
         {/* Regional Settings */}
         <div id="settings-regional-card" className="bg-white rounded-lg border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-4 border-b border-gray-200">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                 <Globe className="w-5 h-5 text-orange-600" />
@@ -236,7 +236,7 @@ export function SettingsPage() {
               </div>
             </div>
           </div>
-          <div className="p-6 space-y-4">
+          <div className="p-4 space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Centre régional
@@ -298,7 +298,7 @@ export function SettingsPage() {
         </div>
 
         {/* System Info */}
-        <div id="settings-system-info-card" className="bg-blue-50 rounded-lg border border-blue-200 p-6">
+        <div id="settings-system-info-card" className="bg-blue-50 rounded-lg border border-blue-200 p-4">
           <h3 className="font-medium text-blue-900 mb-4">Informations système</h3>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>

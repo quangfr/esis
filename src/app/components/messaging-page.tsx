@@ -209,7 +209,7 @@ export function MessagingPage() {
   return (
     <>
       <div className="h-full flex flex-col">
-        <div className="bg-white border-b border-gray-200 px-8 py-6">
+        <div className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -250,8 +250,8 @@ export function MessagingPage() {
           </div>
         </div>
 
-        <div id="messaging-layout" className="flex-1 overflow-hidden p-8">
-          <div className="grid h-full grid-cols-[220px_minmax(340px,1fr)_minmax(0,1.1fr)] gap-6">
+        <div id="messaging-layout" className="flex-1 overflow-hidden p-6">
+          <div className="grid h-full grid-cols-[220px_minmax(340px,1fr)_minmax(0,1.1fr)] gap-4">
             <div id="messaging-folders-panel" className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="space-y-2">
                 {FOLDERS.map((item) => (
@@ -343,14 +343,14 @@ export function MessagingPage() {
                   </button>
                 ))}
                 {inbox.length === 0 && (
-                  <div className="p-8 text-center text-sm text-gray-500">Aucun message dans ce dossier.</div>
+                  <div className="p-6 text-center text-sm text-gray-500">Aucun message dans ce dossier.</div>
                 )}
               </div>
             </div>
 
             <div id="messaging-thread-detail-panel" className="bg-white rounded-lg border border-gray-200 overflow-auto">
               {currentMessage ? (
-                <div className="p-6">
+                <div className="p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <h2 className="text-xl font-bold text-gray-900">{currentMessage.sujet}</h2>

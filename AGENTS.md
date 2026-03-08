@@ -11,26 +11,29 @@ The priority is:
 ## Performance Rules For The Agent
 
 Do not run `npm run build` systematically.
+Prefer `npm run dev` as the default verification loop during implementation.
 
 Use proportional verification:
 - Small copy, layout, spacing, icon, or static mock-data changes:
   do not run a full build by default.
 - Single-component UI changes:
-  prefer targeted inspection and lightweight checks.
+  prefer targeted inspection and lightweight checks in `npm run dev`.
+- Multi-step UI iteration and visual tuning:
+  use `npm run dev` rather than repeated production builds.
 - Cross-file refactors, shared component changes, routing changes, or state-shape changes:
-  run `npm run build`.
-- If the user explicitly asks for validation, release-readiness, or a commit/push after significant changes:
-  run `npm run build`.
+  still prefer `npm run dev` during iteration.
+- Run `npm run build` only when the agent is about to commit/push code.
 - If there is a fast targeted test available for the changed area, prefer that before a full build.
 
 Before running expensive commands, ask:
 - Did I change runtime behavior or only presentation?
-- Did I change shared types, shared UI primitives, routing, or app state?
-- Is a full production build the cheapest meaningful check?
+- Am I actually preparing to commit/push right now?
 
 Default rule:
+- `npm run dev` is sufficient for most local iteration.
 - No full build for minor visual edits.
-- Full build for structural changes.
+- No full build during normal iteration, even for structural changes.
+- Full build only immediately before commit/push.
 
 ## Editing Rules
 

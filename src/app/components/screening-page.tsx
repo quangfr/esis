@@ -43,7 +43,7 @@ function ProgramCard({
   value: string;
 }) {
   return (
-    <div id={id} className="rounded-lg border border-gray-200 bg-white p-6">
+    <div id={id} className="rounded-lg border border-gray-200 bg-white p-4">
       <p className="text-sm text-gray-500">{title}</p>
       <p className="mt-2 text-3xl font-bold text-gray-900">{value}</p>
       <p className="mt-3 text-sm text-gray-600">{description}</p>
@@ -53,7 +53,7 @@ function ProgramCard({
 
 function ProgramDetail({ program }: { program: ScreeningProgram }) {
   return (
-    <div id={toTestId("screening-program-detail", program.type)} className="rounded-lg border border-gray-200 bg-white p-6">
+    <div id={toTestId("screening-program-detail", program.type)} className="rounded-lg border border-gray-200 bg-white p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-lg font-bold text-gray-900">{program.type}</h3>
@@ -86,15 +86,15 @@ export function ScreeningPage() {
   if (role === "patient") {
     return (
       <div className="h-full flex flex-col overflow-auto">
-        <div className="bg-white border-b border-gray-200 px-8 py-6">
+        <div className="bg-white border-b border-gray-200 px-6 py-4">
           <h1 className="text-2xl font-bold text-gray-900">Mon programme de dépistage</h1>
           <p className="text-gray-500 mt-1">
             Cette vue reprend vos parcours sein, colorectal et col utérus avec les prochaines décisions médicales.
           </p>
         </div>
 
-        <div className="p-8 space-y-6">
-          <div id="screening-patient-kpis-section" className="grid grid-cols-3 gap-6">
+        <div className="p-6 space-y-4">
+          <div id="screening-patient-kpis-section" className="grid grid-cols-3 gap-4">
             <ProgramCard
               id="screening-patient-kpi-programs"
               title="Programmes actifs"
@@ -121,7 +121,7 @@ export function ScreeningPage() {
             />
           </div>
 
-          <div id="screening-patient-programs-section" className="grid gap-6">
+          <div id="screening-patient-programs-section" className="grid gap-4">
             {activePatient.programs.map((program) => (
               <ProgramDetail key={program.type} program={program} />
             ))}
@@ -147,15 +147,15 @@ export function ScreeningPage() {
 
     return (
       <div className="h-full flex flex-col overflow-auto">
-        <div className="bg-white border-b border-gray-200 px-8 py-6">
+        <div className="bg-white border-b border-gray-200 px-6 py-4">
           <h1 className="text-2xl font-bold text-gray-900">Suivi clinique praticien</h1>
           <p className="text-gray-500 mt-1">
             Liste priorisée des examens complémentaires et formulaires à finaliser pour vos patients.
           </p>
         </div>
 
-        <div className="p-8 space-y-6">
-          <div id="screening-practitioner-kpis-section" className="grid grid-cols-4 gap-6">
+        <div className="p-6 space-y-4">
+          <div id="screening-practitioner-kpis-section" className="grid grid-cols-4 gap-4">
             <ProgramCard
               id="screening-practitioner-kpi-patients"
               title="Patients suivis"
@@ -188,7 +188,7 @@ export function ScreeningPage() {
             />
           </div>
 
-          <div id="screening-practitioner-exams-card" className="bg-white rounded-lg border border-gray-200 p-6">
+          <div id="screening-practitioner-exams-card" className="bg-white rounded-lg border border-gray-200 p-4">
             <h2 className="text-lg font-bold text-gray-900">Examens à organiser</h2>
             <div className="mt-4 space-y-3">
               {secondaryExams.slice(0, 10).map((item) => (
@@ -213,7 +213,7 @@ export function ScreeningPage() {
 
   return (
     <div className="h-full flex flex-col overflow-auto">
-      <div className="bg-white border-b border-gray-200 px-8 py-6">
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Pilotage régional des programmes</h1>
@@ -228,8 +228,8 @@ export function ScreeningPage() {
         </div>
       </div>
 
-      <div className="p-8 space-y-6">
-        <div id="screening-manager-kpis-section" className="grid grid-cols-4 gap-6">
+      <div className="p-6 space-y-4">
+        <div id="screening-manager-kpis-section" className="grid grid-cols-4 gap-4">
           <ProgramCard
             id="screening-manager-kpi-population"
             title="Population suivie"
@@ -256,9 +256,9 @@ export function ScreeningPage() {
           />
         </div>
 
-        <div id="screening-manager-program-cards-section" className="grid grid-cols-3 gap-6">
+        <div id="screening-manager-program-cards-section" className="grid grid-cols-3 gap-4">
           {aggregated.map((item) => (
-            <div id={toTestId("screening-manager-program-card", item.type)} key={item.type} className="rounded-lg border border-gray-200 bg-white p-6">
+            <div id={toTestId("screening-manager-program-card", item.type)} key={item.type} className="rounded-lg border border-gray-200 bg-white p-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-gray-900">{item.type}</h2>
                 <Activity className="w-5 h-5 text-blue-600" />
@@ -273,7 +273,7 @@ export function ScreeningPage() {
           ))}
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-6">
+        <div className="rounded-lg border border-gray-200 bg-white p-4">
           <h2 className="text-lg font-bold text-gray-900">Repères d'expertise régionale</h2>
           <div className="mt-4 space-y-3">
             <ExpertiseNote text="Sein: la double lecture historique reste la base, avec triage vers échographie en cas d'image dense ou asymétrique." />

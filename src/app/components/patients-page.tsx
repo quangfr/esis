@@ -566,9 +566,9 @@ function ManagerWorkspace({
   );
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="bg-white border-b border-gray-200 px-8 py-6 space-y-4">
-        <div className="flex items-start justify-between gap-4">
+    <div id="patients-manager-page" className="h-full flex flex-col">
+      <div id="patients-manager-header" className="bg-white border-b border-gray-200 px-6 py-4 space-y-3">
+        <div id="patients-manager-header-top" className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Pilotage des parcours patients</h1>
             <p className="text-gray-500 mt-1">
@@ -591,7 +591,7 @@ function ManagerWorkspace({
           </div>
         </div>
 
-        <div className="grid grid-cols-5 gap-3">
+        <div id="patients-manager-quick-actions" className="grid grid-cols-5 gap-3">
           <QuickActionCard icon={UserPlus} title="Nouveau patient" onClick={() => onOpenFlow("patient")} />
           <QuickActionCard icon={FolderPlus} title="Nouvel épisode" onClick={() => onOpenFlow("episode")} />
           <QuickActionCard icon={ClipboardList} title="Nouvelle tâche" onClick={() => onOpenFlow("task")} />
@@ -599,8 +599,8 @@ function ManagerWorkspace({
           <QuickActionCard icon={ShieldCheck} title="Nouvel enrôlement" onClick={() => onOpenFlow("enrollment")} />
         </div>
 
-        <div className="flex gap-3">
-          <div className="flex-1 relative">
+        <div id="patients-manager-filters-row" className="flex gap-3">
+          <div id="patients-manager-search-card" className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               id="patients-search-input"
@@ -618,38 +618,43 @@ function ManagerWorkspace({
         </div>
       </div>
 
-      <div className="bg-white border-b border-gray-200 px-8 py-4">
-        <div className="grid grid-cols-4 gap-6">
-          <KpiCard label="Patients suivis" value={String(patients.length)} accent="text-gray-900" />
-          <KpiCard label="Patients prioritaires" value={String(urgentPatients)} accent="text-red-600" />
-          <KpiCard label="Tâches ouvertes" value={String(pendingTasks.length)} accent="text-orange-600" />
-          <KpiCard label="Enrôlements à valider" value={String(pendingEnrollments.length)} accent="text-blue-600" />
-        </div>
-      </div>
+      <div id="patients-manager-content" className="flex-1 overflow-auto p-6">
+        <div id="patients-manager-layout" className="grid grid-cols-[minmax(0,2fr)_minmax(340px,1fr)] gap-4">
+          <div id="patients-manager-primary-column" className="space-y-4">
+            <div id="patients-manager-kpi-section" className="bg-white rounded-lg border border-gray-200 px-6 py-3">
+              <div className="grid grid-cols-4 gap-4">
+                <KpiCard id="patients-manager-kpi-followed" label="Patients suivis" value={String(patients.length)} accent="text-gray-900" />
+                <KpiCard id="patients-manager-kpi-priority" label="Patients prioritaires" value={String(urgentPatients)} accent="text-red-600" />
+                <KpiCard id="patients-manager-kpi-open-tasks" label="Tâches ouvertes" value={String(pendingTasks.length)} accent="text-orange-600" />
+                <KpiCard
+                  id="patients-manager-kpi-pending-enrollments"
+                  label="Enrôlements à valider"
+                  value={String(pendingEnrollments.length)}
+                  accent="text-blue-600"
+                />
+              </div>
+            </div>
 
-      <div className="flex-1 overflow-auto p-8">
-        <div className="grid grid-cols-[minmax(0,2fr)_minmax(340px,1fr)] gap-6">
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div id="patients-manager-patients-table-card" className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Patient
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Statut
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Risque
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Prochain rappel
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-4 py-2.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -664,7 +669,7 @@ function ManagerWorkspace({
                       }`}
                       onClick={() => setSelectedPatient(patient)}
                     >
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3">
                         <div>
                           <div className="font-medium text-gray-900">
                             {patient.nom} {patient.prenom}
@@ -674,19 +679,19 @@ function ManagerWorkspace({
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{patient.typeDepistage}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3 text-sm text-gray-700">{patient.typeDepistage}</td>
+                      <td className="px-4 py-3">
                         <span className={`px-2 py-1 inline-flex text-xs font-medium rounded-full ${getStatutColor(patient.statut)}`}>
                           {patient.statut}
                         </span>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3">
                         <span className={`px-2 py-1 inline-flex text-xs font-medium rounded-full ${getRiskColor(patient.risque)}`}>
                           {patient.risque}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{patient.prochainRappel}</td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-4 py-3 text-sm text-gray-500">{patient.prochainRappel}</td>
+                      <td className="px-4 py-3 text-right">
                         <button id={toTestId("patients-row-actions-button", patient.id)} className="text-gray-400 hover:text-gray-600">
                           <MoreHorizontal className="w-5 h-5" />
                         </button>
@@ -697,12 +702,14 @@ function ManagerWorkspace({
               </table>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div id="patients-manager-queues-section" className="grid grid-cols-2 gap-4">
               <QueueCard
+                id="patients-manager-open-tasks-card"
                 title="Tâches à traiter"
                 items={pendingTasks.slice(0, 4).map((task) => `${task.titre} • ${task.echeance}`)}
               />
               <QueueCard
+                id="patients-manager-enrollments-card"
                 title="Enrôlements récents"
                 items={pendingEnrollments
                   .slice(0, 4)
@@ -711,9 +718,9 @@ function ManagerWorkspace({
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <div className="flex items-start justify-between gap-4">
+          <div id="patients-manager-secondary-column" className="space-y-4">
+            <div id="patients-manager-patient-detail-card" className="bg-white rounded-lg border border-gray-200 p-4">
+              <div id="patients-manager-patient-detail-header" className="flex items-start justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">
                     {selectedPatient.nom} {selectedPatient.prenom}
@@ -727,7 +734,7 @@ function ManagerWorkspace({
                 </span>
               </div>
 
-              <div className="mt-6 space-y-4">
+              <div id="patients-manager-patient-summary" className="mt-6 space-y-4">
                 <DetailRow label="NIR" value={selectedPatient.nir} />
                 <DetailRow
                   label="Praticien"
@@ -741,7 +748,7 @@ function ManagerWorkspace({
                 <DetailRow label="Couverture" value={selectedPatient.couverture} />
               </div>
 
-              <div className="mt-6 rounded-lg border border-gray-200 p-4">
+              <div id="patients-manager-patient-edit-card" className="mt-6 rounded-lg border border-gray-200 p-4">
                 <p className="text-sm font-semibold text-gray-900">Modifier la fiche</p>
                 <div className="mt-3 grid gap-3">
                   <label className="space-y-1 text-sm text-gray-700">
@@ -774,6 +781,7 @@ function ManagerWorkspace({
                     />
                   </label>
                   <button
+                    id="patients-manager-save-patient-button"
                     className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
                     onClick={() =>
                       void onUpdatePatient({
@@ -793,7 +801,7 @@ function ManagerWorkspace({
                 </div>
               </div>
 
-              <div className="mt-6">
+              <div id="patients-manager-patient-progress" className="mt-6">
                 <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
                   <span>Progression du parcours</span>
                   <span>{selectedPatient.progression}%</span>
@@ -806,7 +814,7 @@ function ManagerWorkspace({
                 </div>
               </div>
 
-              <div className="mt-6 space-y-3">
+              <div id="patients-manager-patient-activity" className="mt-6 space-y-3">
                 <SectionTitle title="Épisodes" />
                 {selectedPatient.episodes.map((episode) => (
                   <InfoTile
@@ -822,11 +830,15 @@ function ManagerWorkspace({
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div id="patients-manager-practitioner-load-card" className="bg-white rounded-lg border border-gray-200 p-4">
               <SectionTitle title="Charge praticiens" />
-              <div className="space-y-3 mt-4">
+              <div id="patients-manager-practitioner-load-list" className="space-y-3 mt-4">
                 {practitioners.slice(0, 4).map((practitioner) => (
-                  <div key={practitioner.id} className="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3">
+                  <div
+                    id={toTestId("patients-manager-practitioner-load-row", practitioner.id)}
+                    key={practitioner.id}
+                    className="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-3"
+                  >
                     <div>
                       <p className="font-medium text-gray-900">
                         Dr. {practitioner.prenom} {practitioner.nom}
@@ -1078,19 +1090,19 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
 
   return (
     <>
-      <div className="h-full flex flex-col overflow-auto">
-        <div className="bg-white border-b border-gray-200 px-8 py-6">
+      <div id="patients-patient-page" className="h-full flex flex-col overflow-auto">
+      <div id="patients-patient-header" className="bg-white border-b border-gray-200 px-6 py-4">
           <h1 className="text-2xl font-bold text-gray-900">Mon dossier de dépistage</h1>
           <p className="text-gray-500 mt-1">
             Parcours détaillé par type de cancer avec résultats, documents cliquables et formulaires de préparation d'examens.
           </p>
         </div>
 
-        <div className="p-8 space-y-6">
-          <div className="grid grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] gap-6">
-            <div className="space-y-6">
-              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-                <div className="border-b border-slate-200 bg-slate-50 p-6">
+        <div id="patients-patient-content" className="p-6 space-y-4">
+          <div id="patients-patient-layout" className="grid grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] gap-4">
+            <div id="patients-patient-primary-column" className="space-y-4">
+              <div id="patients-patient-overview-card" className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                <div id="patients-patient-overview-header" className="border-b border-slate-200 bg-slate-50 p-6">
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <div className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-slate-600 shadow-sm">
@@ -1108,7 +1120,7 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                     </span>
                   </div>
 
-                  <div className="mt-6 grid grid-cols-4 gap-4">
+                  <div id="patients-patient-metrics-section" className="mt-6 grid grid-cols-4 gap-4">
                     <PatientMetric icon={HeartPulse} title="Programme principal" value={patient.typeDepistage} />
                     <PatientMetric icon={Calendar} title="Dernière visite" value={patient.derniereVisite} />
                     <PatientMetric icon={ShieldCheck} title="Consentement" value="Confirmé" />
@@ -1116,15 +1128,15 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                   </div>
                 </div>
 
-                <div className="grid gap-4 p-6 md:grid-cols-4">
+                <div id="patients-patient-medical-info-section" className="grid gap-4 p-6 md:grid-cols-4">
                   <MedicalInfoCard icon={Heart} label="Médecin traitant" value={patient.medecinTraitant} />
                   <MedicalInfoCard icon={Droplets} label="Groupe sanguin" value={patient.groupeSanguin} />
                   <MedicalInfoCard icon={Pill} label="Traitement courant" value={patient.traitements[0]} />
                   <MedicalInfoCard icon={AlertTriangle} label="Allergies" value={patient.allergies.join(", ")} />
                 </div>
 
-                <div className="grid gap-6 border-t border-slate-100 p-6 md:grid-cols-[1.15fr_minmax(0,1fr)]">
-                  <div className="rounded-xl border border-slate-200 p-4">
+                <div id="patients-patient-clinical-context-section" className="grid gap-6 border-t border-slate-100 p-6 md:grid-cols-[1.15fr_minmax(0,1fr)]">
+                  <div id="patients-patient-vitals-card" className="rounded-xl border border-slate-200 p-4">
                     <SectionTitle title="Constantes et contexte courant" />
                     <div className="mt-4 grid grid-cols-2 gap-3">
                       <VitalChip icon={Activity} label="IMC" value={patient.constantes.imc} />
@@ -1134,7 +1146,7 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-slate-200 p-4">
+                  <div id="patients-patient-history-card" className="rounded-xl border border-slate-200 p-4">
                     <SectionTitle title="Antécédents et surveillance" />
                     <div className="mt-4 space-y-3">
                       {patient.antecedents.map((item) => (
@@ -1148,7 +1160,7 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div id="patients-patient-programs-card" className="bg-white rounded-lg border border-gray-200 p-4">
                 <Tabs defaultValue={patient.programs[0].type}>
                   <TabsList className="w-full grid grid-cols-3">
                     {patient.programs.map((program) => {
@@ -1169,13 +1181,13 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
 
                     return (
                       <TabsContent key={program.type} value={program.type} className="mt-6 space-y-6">
-                        <div className="grid grid-cols-3 gap-4">
+                        <div id={toTestId("patients-program-summary-section", program.type)} className="grid grid-cols-3 gap-4">
                           <InfoTile title="Niveau de surveillance" subtitle={program.niveauRisque} />
                           <InfoTile title="Résultat clé" subtitle={program.resultatCle} />
                           <InfoTile title="Prochain examen" subtitle={program.prochainExamen} />
                         </div>
 
-                        <div className={`rounded-xl border p-4 ${accent.soft}`}>
+                        <div id={toTestId("patients-program-regional-insight-card", program.type)} className={`rounded-xl border p-4 ${accent.soft}`}>
                           <div className="flex items-start gap-3">
                             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/80">
                               <Icon className={`h-5 w-5 ${accent.strong}`} />
@@ -1187,7 +1199,7 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                           </div>
                         </div>
 
-                        <div className="rounded-xl border border-slate-200 p-5">
+                        <div id={toTestId("patients-program-timeline-card", program.type)} className="rounded-xl border border-slate-200 p-5">
                           <div className="flex items-center justify-between gap-4">
                             <SectionTitle title="Timeline du parcours" />
                             <span className={`rounded-full px-3 py-1 text-xs font-medium ${accent.chip}`}>
@@ -1220,8 +1232,8 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-[1.1fr_minmax(0,1fr)] gap-6">
-                          <div className="space-y-4">
+                        <div id={toTestId("patients-program-assets-layout", program.type)} className="grid grid-cols-[1.1fr_minmax(0,1fr)] gap-6">
+                          <div id={toTestId("patients-program-documents-section", program.type)} className="space-y-4">
                             <SectionTitle title="Documents de résultats" />
                             <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
                               {program.documents.map((document) => (
@@ -1256,7 +1268,7 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                             </div>
                           </div>
 
-                          <div className="space-y-4">
+                          <div id={toTestId("patients-program-forms-section", program.type)} className="space-y-4">
                             <SectionTitle title="Formulaires de préparation" />
                             <div className="space-y-3">
                               {program.formulaires.map((formulaire) => (
@@ -1288,8 +1300,8 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6">
-                          <div className="rounded-lg border border-gray-200 p-4">
+                        <div id={toTestId("patients-program-bottom-section", program.type)} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6">
+                          <div id={toTestId("patients-program-exams-card", program.type)} className="rounded-lg border border-gray-200 p-4">
                             <SectionTitle title="Examens proposés selon les résultats" />
                             <div className="mt-4 space-y-3">
                               {program.examensProposes.map((examen) => (
@@ -1305,7 +1317,7 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                             </div>
                           </div>
 
-                          <div className="rounded-lg border border-gray-200 p-4">
+                          <div id={toTestId("patients-program-history-card", program.type)} className="rounded-lg border border-gray-200 p-4">
                             <SectionTitle title="Historique et expertise régionale" />
                             <div className="mt-4 space-y-3">
                               {program.historique.map((item) => (
@@ -1323,8 +1335,8 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div id="patients-patient-secondary-column" className="space-y-4">
+              <div id="patients-patient-actions-card" className="bg-white rounded-lg border border-gray-200 p-4">
                 <SectionTitle title="Actions à finaliser" />
                 <div className="mt-4 space-y-3">
                   {[
@@ -1343,7 +1355,7 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div id="patients-patient-contact-card" className="bg-white rounded-lg border border-gray-200 p-4">
                 <SectionTitle title="Contact référent" />
                 <div className="mt-4 rounded-lg bg-blue-50 border border-blue-100 p-4">
                   <p className="font-medium text-gray-900">Dr. Martin Dupont</p>
@@ -1352,7 +1364,7 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div id="patients-patient-preferences-card" className="bg-white rounded-lg border border-gray-200 p-4">
                 <SectionTitle title="Mes préférences" />
                 <div className="mt-4 space-y-3 text-sm text-gray-700">
                   <DetailRow label="Canal préféré" value={patient.canalPrefere} />
@@ -1361,7 +1373,7 @@ function PatientWorkspace({ patient }: { patient: Patient }) {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div id="patients-patient-reference-card" className="bg-white rounded-lg border border-gray-200 p-4">
                 <SectionTitle title="Repères médicaux" />
                 <div className="mt-4 space-y-3">
                   <InfoTile title="Épisodes ouverts" subtitle={`${patient.episodes.length} suivi(s) en cours`} />
@@ -1394,36 +1406,42 @@ function PractitionerWorkspace({
   const assignedPatients = patients.filter((patient) => patient.praticienId === practitioner.id);
 
   return (
-    <div className="h-full flex flex-col overflow-auto">
-      <div className="bg-white border-b border-gray-200 px-8 py-6">
+    <div id="patients-practitioner-page" className="h-full flex flex-col overflow-auto">
+      <div id="patients-practitioner-header" className="bg-white border-b border-gray-200 px-6 py-4">
         <h1 className="text-2xl font-bold text-gray-900">Ma file active</h1>
         <p className="text-gray-500 mt-1">
           Vue praticien centrée sur les suivis à effectuer, les risques, et les prochaines actions cliniques.
         </p>
       </div>
 
-      <div className="p-8 space-y-6">
-        <div className="grid grid-cols-4 gap-6">
-          <KpiCard label="Patients actifs" value={String(assignedPatients.length)} accent="text-gray-900" />
+      <div id="patients-practitioner-content" className="p-6 space-y-4">
+        <div id="patients-practitioner-kpi-section" className="grid grid-cols-4 gap-4">
+          <KpiCard id="patients-practitioner-kpi-active-patients" label="Patients actifs" value={String(assignedPatients.length)} accent="text-gray-900" />
           <KpiCard
+            id="patients-practitioner-kpi-priority-followups"
             label="Relances prioritaires"
             value={String(assignedPatients.filter((patient) => patient.risque === "Prioritaire").length)}
             accent="text-red-600"
           />
           <KpiCard
+            id="patients-practitioner-kpi-planned-exams"
             label="Examens planifiés"
             value={String(assignedPatients.filter((patient) => patient.statut === "Invité").length)}
             accent="text-blue-600"
           />
-          <KpiCard label="Charge" value={practitioner.charge} accent="text-emerald-600" />
+          <KpiCard id="patients-practitioner-kpi-load" label="Charge" value={practitioner.charge} accent="text-emerald-600" />
         </div>
 
-        <div className="grid grid-cols-[minmax(0,1.8fr)_minmax(320px,1fr)] gap-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div id="patients-practitioner-layout" className="grid grid-cols-[minmax(0,1.8fr)_minmax(320px,1fr)] gap-4">
+          <div id="patients-practitioner-followup-list-card" className="bg-white rounded-lg border border-gray-200 p-4">
             <SectionTitle title="Patients à suivre aujourd'hui" />
-            <div className="mt-4 space-y-3">
+            <div id="patients-practitioner-followup-list" className="mt-4 space-y-3">
               {assignedPatients.slice(0, 8).map((patient) => (
-                <div key={patient.id} className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
+                <div
+                  id={toTestId("patients-practitioner-followup-row", patient.id)}
+                  key={patient.id}
+                  className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3"
+                >
                   <div>
                     <p className="font-medium text-gray-900">
                       {patient.prenom} {patient.nom}
@@ -1443,15 +1461,15 @@ function PractitionerWorkspace({
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div id="patients-practitioner-secondary-column" className="space-y-4">
+            <div id="patients-practitioner-assignments-card" className="bg-white rounded-lg border border-gray-200 p-4">
               <SectionTitle title="Affectations" />
               <div className="mt-4 space-y-3">
                 <InfoTile title={practitioner.structure} subtitle={practitioner.specialite} />
                 <InfoTile title={`${practitioner.patientsActifs} patients actifs`} subtitle={practitioner.disponibilite} />
               </div>
             </div>
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div id="patients-practitioner-checklist-card" className="bg-white rounded-lg border border-gray-200 p-4">
               <SectionTitle title="Checklist de la journée" />
               <div className="mt-4 space-y-3">
                 <InfoTile title="Valider 3 résultats" subtitle="Avant 14:00" />
@@ -1568,9 +1586,9 @@ function InfoTile({ title, subtitle }: { title: string; subtitle: string }) {
   );
 }
 
-function QueueCard({ title, items }: { title: string; items: string[] }) {
+function QueueCard({ id, title, items }: { id?: string; title: string; items: string[] }) {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div id={id} className="bg-white rounded-lg border border-gray-200 p-4">
       <SectionTitle title={title} />
       <div className="mt-4 space-y-3">
         {items.map((item) => (
@@ -1679,16 +1697,18 @@ function ChecklistLine({ text }: { text: string }) {
 }
 
 function KpiCard({
+  id,
   label,
   value,
   accent,
 }: {
+  id?: string;
   label: string;
   value: string;
   accent: string;
 }) {
   return (
-    <div>
+    <div id={id}>
       <p className="text-sm text-gray-500">{label}</p>
       <p className={`text-2xl font-bold ${accent}`}>{value}</p>
     </div>

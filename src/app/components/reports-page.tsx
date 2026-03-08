@@ -71,7 +71,7 @@ export function ReportsPage() {
 
   return (
     <div className="h-full flex flex-col overflow-auto bg-slate-50">
-      <div className="border-b border-slate-200 bg-white px-8 py-6">
+      <div className="border-b border-slate-200 bg-white px-6 py-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Rapports et Indicateurs d'Activité</h1>
@@ -115,8 +115,8 @@ export function ReportsPage() {
         </div>
       </div>
 
-      <div className="flex-1 space-y-6 p-8">
-        <div id="reports-kpis-section" className="grid grid-cols-5 gap-6">
+      <div className="flex-1 space-y-4 p-6">
+        <div id="reports-kpis-section" className="grid grid-cols-5 gap-4">
           <KpiCard
             id="reports-kpi-participation"
             icon={TrendingUp}
@@ -159,8 +159,8 @@ export function ReportsPage() {
           />
         </div>
 
-        <div id="reports-trends-layout" className="grid grid-cols-[minmax(0,1.8fr)_minmax(320px,1fr)] gap-6">
-          <div id="reports-trend-chart-card" className="rounded-2xl border border-slate-200 bg-white p-6">
+        <div id="reports-trends-layout" className="grid grid-cols-[minmax(0,1.8fr)_minmax(320px,1fr)] gap-4">
+          <div id="reports-trend-chart-card" className="rounded-2xl border border-slate-200 bg-white p-4">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">Tendance de participation</h3>
@@ -197,8 +197,8 @@ export function ReportsPage() {
             </div>
           </div>
 
-          <div id="reports-side-analysis-section" className="space-y-6">
-            <div id="reports-national-narrative-card" className="rounded-2xl border border-blue-100 bg-blue-50 p-6">
+          <div id="reports-side-analysis-section" className="space-y-4">
+            <div id="reports-national-narrative-card" className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
               <p className="text-sm font-semibold text-blue-900">Lecture nationale par défaut</p>
               <div className="mt-4 space-y-3">
                 {nationalNarrative.map((item) => (
@@ -209,7 +209,7 @@ export function ReportsPage() {
               </div>
             </div>
 
-            <div id="reports-key-gap-card" className="rounded-2xl border border-slate-200 bg-white p-6">
+            <div id="reports-key-gap-card" className="rounded-2xl border border-slate-200 bg-white p-4">
               <h3 className="text-lg font-bold text-slate-900">Écart clé</h3>
               <p className="mt-4 text-4xl font-bold text-blue-700">+{summary.participation.delta.toFixed(1)} pts</p>
               <p className="mt-2 text-sm text-slate-600">
@@ -219,8 +219,8 @@ export function ReportsPage() {
           </div>
         </div>
 
-        <div id="reports-comparison-layout" className="grid grid-cols-[minmax(0,1.3fr)_minmax(340px,1fr)] gap-6">
-          <div id="reports-program-comparison-card" className="rounded-2xl border border-slate-200 bg-white p-6">
+        <div id="reports-comparison-layout" className="grid grid-cols-[minmax(0,1.3fr)_minmax(340px,1fr)] gap-4">
+          <div id="reports-program-comparison-card" className="rounded-2xl border border-slate-200 bg-white p-4">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">Comparaison par programme</h3>
@@ -247,7 +247,7 @@ export function ReportsPage() {
             </div>
           </div>
 
-          <div id="reports-crdc-comparison-card" className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div id="reports-crdc-comparison-card" className="rounded-2xl border border-slate-200 bg-white p-4">
             <h3 className="text-lg font-bold text-slate-900">Comparatif CRDC</h3>
             <div className="mt-4 space-y-3">
               {crdcComparisonRows.map((row, index) => (
@@ -295,7 +295,7 @@ function KpiCard({
   comparison: string;
 }) {
   return (
-    <div id={id} className="rounded-2xl border border-slate-200 bg-white p-6">
+    <div id={id} className="rounded-2xl border border-slate-200 bg-white p-4">
       <div className="flex items-center justify-between gap-4">
         <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconClassName}`}>
           <Icon className="h-5 w-5" />
