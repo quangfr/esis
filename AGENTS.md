@@ -1,167 +1,112 @@
 # AGENTS.md
 
 ## Purpose
+This repo is a front-end demo/prototype for screening workflows.
+The priority is:
+1. fast iteration
+2. clear code structure
+3. coherent UI behavior
+4. only enough verification for the scope of the change
 
-This repository contains the EPICONCEPT ESIS front-end application, built with Vite, React, and React Router.
+## Performance Rules For The Agent
 
-Use this file as the default operating guide for agents working on the app from a Product Owner perspective.
+Do not run `npm run build` systematically.
 
-Primary goals:
-- support product discovery
-- produce clear functional specifications
-- keep project documentation current
-- define and validate testing coverage for product flows
+Use proportional verification:
+- Small copy, layout, spacing, icon, or static mock-data changes:
+  do not run a full build by default.
+- Single-component UI changes:
+  prefer targeted inspection and lightweight checks.
+- Cross-file refactors, shared component changes, routing changes, or state-shape changes:
+  run `npm run build`.
+- If the user explicitly asks for validation, release-readiness, or a commit/push after significant changes:
+  run `npm run build`.
+- If there is a fast targeted test available for the changed area, prefer that before a full build.
 
-## Product Context
+Before running expensive commands, ask:
+- Did I change runtime behavior or only presentation?
+- Did I change shared types, shared UI primitives, routing, or app state?
+- Is a full production build the cheapest meaningful check?
 
-Current top-level user areas visible in the app:
-- `patients`
-- `messaging`
-- `screening`
-- `reports`
-- `settings`
+Default rule:
+- No full build for minor visual edits.
+- Full build for structural changes.
 
-Unless the user says otherwise, assume this is an internal healthcare-oriented product where clarity, traceability, and workflow correctness matter more than visual novelty.
+## Editing Rules
 
-## Product Owner Working Mode
+Prefer minimal diffs.
 
-When the request is product-oriented, default to these outputs:
-- discovery notes
-- problem statements
-- user stories
-- acceptance criteria
-- edge cases
-- release notes
-- test scenarios
+Do not rewrite large files unless the existing structure is blocking the task.
 
-Prefer structured artifacts over vague summaries. Convert loose requests into explicit decisions, assumptions, risks, and open questions.
+Keep local mock data coherent with the UI that consumes it.
 
-## Discovery Instructions
+When adding new fake data:
+- keep naming realistic
+- keep values internally consistent
+- avoid random fields that are not rendered
 
-For discovery work:
-- start from the existing app structure, routes, and UI copy before proposing changes
-- identify the target user, their goal, trigger, constraints, and success condition
-- separate confirmed facts from assumptions
-- call out dependencies on data, permissions, integrations, or operational workflows
-- highlight anything that is safety-sensitive, compliance-sensitive, or likely to affect patient-facing or clinician-facing workflows
+## Code Design Clarity
 
-Discovery output should usually include:
-- problem
-- user/persona
-- current behavior
-- desired behavior
-- constraints
-- open questions
-- measurable success criteria
+Optimize for readability over cleverness.
 
-## Specification Instructions
+Prefer:
+- small focused helpers
+- local data-driven configuration
+- explicit naming
+- shallow component trees when possible
 
-When writing specifications:
-- prefer concise product specs in Markdown
-- define scope and out-of-scope explicitly
-- anchor requirements to concrete screens or routes when possible
-- include happy path, empty states, error states, loading states, and permission-related behavior
-- include acceptance criteria that are testable and observable
-- use plain language; avoid implementation detail unless it changes product behavior
+Avoid:
+- giant inline objects inside JSX unless truly local
+- repeated conditional branches across the same file
+- mixing data definition, business rules, and view rendering in the same block when it can be separated cheaply
+- broad renames or formatting churn unrelated to the task
 
-Recommended spec sections:
-- summary
-- background
-- goals
-- non-goals
-- user stories
-- functional requirements
-- UX/content notes
-- analytics or reporting needs
-- risks
-- acceptance criteria
+## React Guidelines
 
-Acceptance criteria should be written so QA or another agent can verify them without guesswork.
+Use function components and keep state as local as possible.
 
-## Documentation Instructions
+When a modal, tab set, or card family has repeated structure:
+- extract configuration objects first
+- extract helper components second
+- only extract hooks if logic is reused or hard to read inline
 
-When updating documentation:
-- keep README-level content brief and operational
-- place feature or workflow documentation in dedicated Markdown files if the content is more than a short note
-- update documentation whenever behavior, terminology, route structure, or setup steps change
-- prefer documenting decisions and expected behavior rather than repeating code structure
+Do not introduce memoization by default.
+Use `useMemo` only when it improves clarity or prevents obviously repeated expensive work.
 
-Documentation should answer:
-- what the feature does
-- who it is for
-- how it is expected to behave
-- how to verify it works
+## UI Guidelines
 
-## Testing Instructions
+This project is a product demo, so visuals matter.
 
-For testing work, think in product flows first, then implementation details.
+Prefer:
+- strong information hierarchy
+- cards and sections with clear purpose
+- icons only when they add meaning
+- layouts that remain readable at medium widths
 
-Always consider:
-- primary user journey
-- alternate path
-- validation failures
-- empty/no-data state
-- error/retry behavior
-- navigation impact across routes
-- regression risk to adjacent screens
+Avoid:
+- cramped multi-column layouts
+- badges or pills that steal width from main content
+- oversized modal internals without a clear content reason
+- decorative visuals that reduce scanability
 
-When proposing or reviewing tests:
-- prefer scenarios that map directly to acceptance criteria
-- note missing automated coverage
-- include manual QA steps when automation does not exist
-- identify critical regressions first
+For forms:
+- each step should show fields specific to that step
+- labels must be explicit
+- fake values should still look believable
 
-Useful testing outputs:
-- test checklist
-- Given/When/Then scenarios
-- regression scope
-- release readiness notes
+For reports:
+- comparisons must make the default benchmark obvious
+- charts should answer one question each
 
-## Change Discipline
+## Validation Output
 
-Before making product-facing changes:
-- inspect the relevant route/component files
-- understand current terminology and navigation
-- preserve consistency across related screens
+When reporting completion:
+- say what changed
+- say what was verified
+- if no build was run, say so explicitly when relevant
 
-After making product-facing changes:
-- update any impacted documentation
-- summarize user-visible behavior changes
-- list anything not validated
+## Safety
 
-## Communication Rules
+Do not stage or commit unrelated files unless the user explicitly asks for all local changes.
 
-When acting as a Product Owner agent:
-- be explicit about assumptions
-- distinguish observation from recommendation
-- raise contradictions instead of smoothing over them
-- prefer direct language over generic product jargon
-- keep outputs decision-oriented
-
-If requirements are incomplete, produce:
-- a best-effort draft
-- assumptions
-- open questions that would unblock finalization
-
-## Definition of Done for Product Work
-
-A product task is not complete until most of the following are covered:
-- the user problem is clear
-- scope is defined
-- requirements are testable
-- edge cases are identified
-- documentation is updated or drafted
-- a verification approach exists
-
-## Repo Notes
-
-App entry points:
-- `index.html`
-- `src/main.tsx`
-- `src/app/App.tsx`
-- `src/app/routes.tsx`
-
-Current dev command:
-- `npm run dev`
-
-If local install issues occur in WSL on `/mnt/c`, verify whether dependency extraction on the Windows-mounted filesystem is the blocker before assuming the app code is broken.
+Ignore local logs and incidental workspace files unless the task is about them.
