@@ -247,8 +247,19 @@ function getDefaultExample(field: FieldSpec) {
 
   const key = field.key.toLowerCase();
   const format = field.format.toLowerCase();
+  const notes = field.notes.toLowerCase();
 
-  if (key.includes("id")) return "pt-1";
+  if (key.includes("id")) {
+    if (notes.includes("episode")) return "ep-1";
+    if (notes.includes("task")) return "task-1";
+    if (notes.includes("enrollment")) return "enr-1";
+    if (notes.includes("practitioner")) return "pr-1";
+    if (notes.includes("thread") || notes.includes("message")) return "msg-1";
+    if (notes.includes("document")) return "doc-1";
+    if (notes.includes("form")) return "form-1";
+    if (notes.includes("timeline")) return "step-1";
+    return "pt-1";
+  }
   if (key.includes("prenom")) return "Marie";
   if (key.includes("nom")) return "Dubois";
   if (key.includes("nir")) return "1 58 01 75 11 27 41";
@@ -269,6 +280,18 @@ function getDefaultExample(field: FieldSpec) {
   if (key.includes("importance")) return "Normale";
   if (key.includes("securise") || format.includes("boolean")) return "true";
   if (key.includes("progression") || key.includes("patientsactifs") || key.includes("limit")) return "42";
+  if (key.includes("titre")) return "Vérifier le dossier";
+  if (key.includes("prochaineetape")) return "Confirmer la préparation";
+  if (key.includes("assignea")) return "Dr. Martin Dupont";
+  if (key.includes("consentement")) return "true";
+  if (key.includes("tendanceregionale")) return "+4% vs région";
+  if (key.includes("resultatcle")) return "Aucun signe suspect";
+  if (key.includes("prochainexamen")) return "Mammographie 2027";
+  if (key.includes("justification")) return "Suivi standard";
+  if (key.includes("resultat")) return "RAS";
+  if (key.includes("indicateur")) return "BI-RADS 2";
+  if (key.includes("auteur")) return "Dr. Sophie Leroy";
+  if (key.includes("detail")) return "Convocation envoyée";
   if (key.includes("date") || key.includes("periode") || format.includes("yyyy") || format.includes("dd/mm")) {
     return "12/03/2026";
   }
@@ -1425,6 +1448,7 @@ function getResponseScenarios(route: string, method: HttpVerb): ResponseScenario
 
 function getExpectedMainResponse(route: string, method: HttpVerb) {
   const family = getRouteFamily(route);
+  const segments = getPathSegments(route);
 
   if (family === "collections") {
     return formatJson({
@@ -1439,6 +1463,41 @@ function getExpectedMainResponse(route: string, method: HttpVerb) {
   }
 
   if (family === "patients") {
+    if (method === "GET" && segments[0] === "patients" && segments[2] === "episodes") {
+      return formatJson(demoDataBundle.patients[0]?.episodes ?? []);
+    }
+    if (method === "GET" && segments[0] === "patients" && segments[2] === "tasks") {
+      return formatJson(demoDataBundle.patients[0]?.tasks ?? []);
+    }
+    if (method === "GET" && segments[0] === "patients" && segments[2] === "enrollments") {
+      return formatJson(demoDataBundle.patients[0]?.enrollments ?? []);
+    }
+    if (method === "GET" && segments[0] === "patients" && segments[2] === "programs" && segments.length === 3) {
+      return formatJson(demoDataBundle.patients[0]?.programs ?? []);
+    }
+    if (method === "GET" && segments[0] === "patients" && segments[2] === "programs" && segments.length === 4) {
+      const program = demoDataBundle.patients[0]?.programs.find((item) => item.type === segments[3]);
+      return formatJson(program ?? null);
+    }
+    if (method === "GET" && segments[0] === "patients" && segments[2] === "programs" && segments.length === 5) {
+      const program = demoDataBundle.patients[0]?.programs.find((item) => item.type === segments[3]);
+      if (!program) {
+        return formatJson([]);
+      }
+      if (segments[4] === "documents") {
+        return formatJson(program.documents);
+      }
+      if (segments[4] === "formulaires") {
+        return formatJson(program.formulaires);
+      }
+      if (segments[4] === "examens") {
+        return formatJson(program.examensProposes);
+      }
+      if (segments[4] === "timeline") {
+        return formatJson(program.parcours);
+      }
+      return formatJson([]);
+    }
     if (method === "GET" && route.includes("/patients/")) {
       return formatJson(demoDataBundle.patients[0]);
     }
