@@ -1,56 +1,86 @@
-import { useState } from "react";
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { Download, Calendar, TrendingUp, Filter } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+} from "recharts";
+import { Activity, Calendar, Download, Filter, TrendingUp, Users } from "lucide-react";
 
-const participationData = [
-  { mois: "Jan", sein: 620, colorectal: 420, colUterus: 180 },
-  { mois: "Fev", sein: 680, colorectal: 520, colUterus: 220 },
-  { mois: "Mar", sein: 710, colorectal: 480, colUterus: 240 },
-  { mois: "Avr", sein: 750, colorectal: 540, colUterus: 260 },
-  { mois: "Mai", sein: 820, colorectal: 580, colUterus: 290 },
-  { mois: "Juin", sein: 870, colorectal: 620, colUterus: 310 },
+type BenchmarkKey = "national" | "auvergne" | "nouvelle-aquitaine" | "occitanie";
+
+const BENCHMARK_LABELS: Record<BenchmarkKey, string> = {
+  national: "Tendance nationale",
+  auvergne: "CRDC Auvergne-Rhône-Alpes",
+  "nouvelle-aquitaine": "CRDC Nouvelle-Aquitaine",
+  occitanie: "CRDC Occitanie",
+};
+
+const trendData = [
+  { mois: "Jan", idf: 57.8, national: 56.1, auvergne: 55.4, "nouvelle-aquitaine": 54.8, occitanie: 56.5 },
+  { mois: "Fev", idf: 58.9, national: 56.6, auvergne: 55.9, "nouvelle-aquitaine": 55.1, occitanie: 57.0 },
+  { mois: "Mar", idf: 59.7, national: 57.0, auvergne: 56.4, "nouvelle-aquitaine": 55.5, occitanie: 57.8 },
+  { mois: "Avr", idf: 60.8, national: 57.7, auvergne: 57.1, "nouvelle-aquitaine": 56.2, occitanie: 58.6 },
+  { mois: "Mai", idf: 61.9, national: 58.2, auvergne: 57.8, "nouvelle-aquitaine": 56.8, occitanie: 59.1 },
+  { mois: "Juin", idf: 63.1, national: 58.9, auvergne: 58.3, "nouvelle-aquitaine": 57.4, occitanie: 59.8 },
 ];
 
-const tauxParticipationData = [
-  { mois: "Jan", taux: 58.2 },
-  { mois: "Fev", taux: 59.5 },
-  { mois: "Mar", taux: 60.1 },
-  { mois: "Avr", taux: 61.3 },
-  { mois: "Mai", taux: 62.8 },
-  { mois: "Juin", taux: 63.5 },
+const typeComparison = [
+  { type: "Sein", idf: 66.2, national: 61.8, auvergne: 62.1, "nouvelle-aquitaine": 60.3, occitanie: 61.5 },
+  { type: "Colorectal", idf: 54.9, national: 50.2, auvergne: 49.7, "nouvelle-aquitaine": 48.9, occitanie: 51.0 },
+  { type: "Col utérus", idf: 58.3, national: 55.1, auvergne: 53.8, "nouvelle-aquitaine": 54.5, occitanie: 55.4 },
 ];
 
-const repartitionData = [
-  { name: "Sein", value: 5100, color: "#3B82F6" },
-  { name: "Colorectal", value: 3200, color: "#8B5CF6" },
-  { name: "Col utérus", value: 1500, color: "#10B981" },
+const crdcComparisonRows = [
+  { label: "CRDC Île-de-France", participation: 63.1, delai: 11.4, suivi: 95.8, invitations: 17100 },
+  { label: "Tendance nationale", participation: 58.9, delai: 13.2, suivi: 92.7, invitations: 16480 },
+  { label: "CRDC Auvergne-Rhône-Alpes", participation: 58.3, delai: 13.7, suivi: 91.8, invitations: 14920 },
+  { label: "CRDC Nouvelle-Aquitaine", participation: 57.4, delai: 14.1, suivi: 91.1, invitations: 14620 },
+  { label: "CRDC Occitanie", participation: 59.8, delai: 12.8, suivi: 93.0, invitations: 15190 },
 ];
 
-const resultsData = [
-  { type: "Négatif", count: 8450, percentage: 86.7 },
-  { type: "Positif", count: 890, percentage: 9.1 },
-  { type: "Non concluant", count: 410, percentage: 4.2 },
+const nationalNarrative = [
+  "L'Île-de-France reste au-dessus de la tendance nationale sur les trois programmes avec un écart particulièrement visible sur le sein.",
+  "Le délai moyen invitation vers examen se réduit plus vite que la moyenne nationale, signe d'une meilleure orchestration des rappels et des créneaux.",
+  "Le colorectal demeure le point de tension commun à plusieurs CRDC, avec un besoin de fluidifier la filière post-FIT positif.",
 ];
 
 export function ReportsPage() {
   const [dateRange, setDateRange] = useState("6months");
+  const [benchmark, setBenchmark] = useState<BenchmarkKey>("national");
+
+  const summary = useMemo(() => {
+    const current = trendData[trendData.length - 1];
+    const targetValue = current[benchmark];
+
+    return {
+      participation: { current: current.idf, reference: targetValue, delta: current.idf - targetValue },
+      depistages: { current: 9800, reference: benchmark === "national" ? 9310 : 9050 },
+      invitations: { current: 17100, reference: benchmark === "national" ? 16480 : 15190 },
+      delai: { current: 11.4, reference: benchmark === "national" ? 13.2 : 12.8 },
+      suivi: { current: 95.8, reference: benchmark === "national" ? 92.7 : 93.0 },
+    };
+  }, [benchmark]);
 
   return (
-    <div className="h-full flex flex-col overflow-auto bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-8 py-6">
-        <div className="flex items-center justify-between mb-4">
+    <div className="h-full flex flex-col overflow-auto bg-slate-50">
+      <div className="border-b border-slate-200 bg-white px-8 py-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Rapports et Indicateurs d'Activité
-            </h1>
-            <p className="text-gray-500 mt-1">
-              Tableaux de bord et statistiques des programmes de dépistage
+            <h1 className="text-2xl font-bold text-slate-900">Rapports et Indicateurs d'Activité</h1>
+            <p className="mt-1 text-slate-500">
+              Comparaison du CRDC Île-de-France face aux autres CRDC et, par défaut, à la tendance nationale.
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <select
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
             >
@@ -59,245 +89,220 @@ export function ReportsPage() {
               <option value="6months">6 derniers mois</option>
               <option value="1year">Année en cours</option>
             </select>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
-              <Filter className="w-4 h-4" />
+            <select
+              className="rounded-lg border border-slate-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={benchmark}
+              onChange={(e) => setBenchmark(e.target.value as BenchmarkKey)}
+            >
+              {Object.entries(BENCHMARK_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <button className="flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 hover:bg-slate-50">
+              <Filter className="h-4 w-4" />
               Filtres
             </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
-              <Download className="w-4 h-4" />
+            <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+              <Download className="h-4 w-4" />
               Exporter
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 p-8 space-y-6">
-        {/* KPIs */}
-        <div className="grid grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-blue-600" />
-              </div>
-              <span className="text-green-600 text-sm font-medium flex items-center gap-1">
-                +8.7%
-                <TrendingUp className="w-4 h-4" />
-              </span>
-            </div>
-            <p className="text-gray-500 text-sm mb-1">Dépistages réalisés</p>
-            <p className="text-3xl font-bold text-gray-900">9,800</p>
-            <p className="text-xs text-gray-500 mt-2">vs période précédente</p>
-          </div>
-
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-purple-600" />
-              </div>
-              <span className="text-green-600 text-sm font-medium flex items-center gap-1">
-                +12.4%
-                <TrendingUp className="w-4 h-4" />
-              </span>
-            </div>
-            <p className="text-gray-500 text-sm mb-1">Invitations envoyées</p>
-            <p className="text-3xl font-bold text-gray-900">17,100</p>
-            <p className="text-xs text-gray-500 mt-2">vs période précédente</p>
-          </div>
-
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-green-600" />
-              </div>
-              <span className="text-green-600 text-sm font-medium flex items-center gap-1">
-                +5.2%
-                <TrendingUp className="w-4 h-4" />
-              </span>
-            </div>
-            <p className="text-gray-500 text-sm mb-1">Taux de participation</p>
-            <p className="text-3xl font-bold text-gray-900">57.3%</p>
-            <p className="text-xs text-gray-500 mt-2">vs période précédente</p>
-          </div>
-
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-orange-600" />
-              </div>
-              <span className="text-red-600 text-sm font-medium flex items-center gap-1">
-                -2.3%
-                <TrendingUp className="w-4 h-4 rotate-180" />
-              </span>
-            </div>
-            <p className="text-gray-500 text-sm mb-1">Délai moyen traitement</p>
-            <p className="text-3xl font-bold text-gray-900">12j</p>
-            <p className="text-xs text-gray-500 mt-2">vs période précédente</p>
-          </div>
+      <div className="flex-1 space-y-6 p-8">
+        <div className="grid grid-cols-5 gap-6">
+          <KpiCard
+            icon={TrendingUp}
+            iconClassName="bg-blue-100 text-blue-700"
+            label="Participation"
+            value={`${summary.participation.current.toFixed(1)}%`}
+            comparison={`+${summary.participation.delta.toFixed(1)} pts vs ${BENCHMARK_LABELS[benchmark]}`}
+          />
+          <KpiCard
+            icon={Activity}
+            iconClassName="bg-emerald-100 text-emerald-700"
+            label="Dépistages réalisés"
+            value={summary.depistages.current.toLocaleString()}
+            comparison={`+${(summary.depistages.current - summary.depistages.reference).toLocaleString()} vs ${BENCHMARK_LABELS[benchmark]}`}
+          />
+          <KpiCard
+            icon={Calendar}
+            iconClassName="bg-violet-100 text-violet-700"
+            label="Invitations envoyées"
+            value={summary.invitations.current.toLocaleString()}
+            comparison={`+${(summary.invitations.current - summary.invitations.reference).toLocaleString()} vs ${BENCHMARK_LABELS[benchmark]}`}
+          />
+          <KpiCard
+            icon={Users}
+            iconClassName="bg-amber-100 text-amber-700"
+            label="Suivi post-dépistage"
+            value={`${summary.suivi.current.toFixed(1)}%`}
+            comparison={`+${(summary.suivi.current - summary.suivi.reference).toFixed(1)} pts vs ${BENCHMARK_LABELS[benchmark]}`}
+          />
+          <KpiCard
+            icon={TrendingUp}
+            iconClassName="bg-rose-100 text-rose-700"
+            label="Délai moyen traitement"
+            value={`${summary.delai.current.toFixed(1)} j`}
+            comparison={`${(summary.delai.reference - summary.delai.current).toFixed(1)} j plus rapide que ${BENCHMARK_LABELS[benchmark]}`}
+          />
         </div>
 
-        {/* Charts Row 1 */}
-        <div className="grid grid-cols-2 gap-6">
-          {/* Evolution des dépistages */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
-              Évolution des dépistages réalisés
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={participationData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="mois" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="sein" fill="#3B82F6" name="Sein" />
-                <Bar dataKey="colorectal" fill="#8B5CF6" name="Colorectal" />
-                <Bar dataKey="colUterus" fill="#10B981" name="Col utérus" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Taux de participation */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
-              Évolution du taux de participation
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={tauxParticipationData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="mois" />
-                <YAxis domain={[50, 70]} />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="taux"
-                  stroke="#10B981"
-                  strokeWidth={3}
-                  name="Taux (%)"
-                  dot={{ r: 5 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Charts Row 2 */}
-        <div className="grid grid-cols-2 gap-6">
-          {/* Répartition par type */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
-              Répartition des dépistages par type
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={repartitionData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) =>
-                    `${name}: ${(percent * 100).toFixed(1)}%`
-                  }
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {repartitionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="mt-4 space-y-2">
-              {repartitionData.map((item) => (
-                <div key={item.name} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded"
-                      style={{ backgroundColor: item.color }}
+        <div className="grid grid-cols-[minmax(0,1.8fr)_minmax(320px,1fr)] gap-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Tendance de participation</h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  La courbe nationale reste affichée en référence, avec comparaison additionnelle selon le CRDC sélectionné.
+                </p>
+              </div>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                Référence: {BENCHMARK_LABELS[benchmark]}
+              </span>
+            </div>
+            <div className="mt-6 h-[320px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trendData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mois" />
+                  <YAxis domain={[52, 66]} />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="idf" name="CRDC Île-de-France" stroke="#2563eb" strokeWidth={3} dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="national" name="Tendance nationale" stroke="#0f766e" strokeWidth={3} dot={{ r: 4 }} />
+                  {benchmark !== "national" ? (
+                    <Line
+                      type="monotone"
+                      dataKey={benchmark}
+                      name={BENCHMARK_LABELS[benchmark]}
+                      stroke="#c2410c"
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
                     />
-                    <span className="text-gray-700">{item.name}</span>
-                  </div>
-                  <span className="font-medium text-gray-900">
-                    {item.value.toLocaleString()}
-                  </span>
-                </div>
-              ))}
+                  ) : null}
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Résultats */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Répartition des résultats</h3>
-            <div className="space-y-4 mt-8">
-              {resultsData.map((result) => (
-                <div key={result.type}>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-700 font-medium">{result.type}</span>
-                    <span className="text-gray-900 font-medium">
-                      {result.count.toLocaleString()} ({result.percentage}%)
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6">
+              <p className="text-sm font-semibold text-blue-900">Lecture nationale par défaut</p>
+              <div className="mt-4 space-y-3">
+                {nationalNarrative.map((item) => (
+                  <div key={item} className="rounded-xl bg-white/80 px-4 py-3 text-sm text-slate-700 shadow-sm">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-6">
+              <h3 className="text-lg font-bold text-slate-900">Écart clé</h3>
+              <p className="mt-4 text-4xl font-bold text-blue-700">+{summary.participation.delta.toFixed(1)} pts</p>
+              <p className="mt-2 text-sm text-slate-600">
+                sur le taux de participation du CRDC Île-de-France face à {BENCHMARK_LABELS[benchmark].toLowerCase()}.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-[minmax(0,1.3fr)_minmax(340px,1fr)] gap-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Comparaison par programme</h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  Taux de participation par type de cancer, confrontés au benchmark sélectionné et à la tendance nationale.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={typeComparison}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="type" />
+                  <YAxis domain={[45, 72]} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="idf" name="CRDC Île-de-France" fill="#2563eb" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="national" name="Tendance nationale" fill="#0f766e" radius={[6, 6, 0, 0]} />
+                  {benchmark !== "national" ? (
+                    <Bar dataKey={benchmark} name={BENCHMARK_LABELS[benchmark]} fill="#c2410c" radius={[6, 6, 0, 0]} />
+                  ) : null}
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+            <h3 className="text-lg font-bold text-slate-900">Comparatif CRDC</h3>
+            <div className="mt-4 space-y-3">
+              {crdcComparisonRows.map((row, index) => (
+                <div
+                  key={row.label}
+                  className={`rounded-xl border px-4 py-4 ${
+                    index === 0 ? "border-blue-200 bg-blue-50/70" : index === 1 ? "border-emerald-200 bg-emerald-50/60" : "border-slate-200 bg-slate-50"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="font-semibold text-slate-900">{row.label}</p>
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-600">
+                      {row.participation.toFixed(1)}%
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div
-                      className={`h-3 rounded-full ${
-                        result.type === "Négatif"
-                          ? "bg-green-600"
-                          : result.type === "Positif"
-                          ? "bg-red-600"
-                          : "bg-yellow-600"
-                      }`}
-                      style={{ width: `${result.percentage}%` }}
-                    />
+                  <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
+                    <MetricMini label="Délai" value={`${row.delai.toFixed(1)} j`} />
+                    <MetricMini label="Suivi" value={`${row.suivi.toFixed(1)}%`} />
+                    <MetricMini label="Invitations" value={row.invitations.toLocaleString()} />
                   </div>
                 </div>
               ))}
-            </div>
-            <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-900">
-                <span className="font-medium">Total analysé:</span>{" "}
-                {resultsData.reduce((sum, r) => sum + r.count, 0).toLocaleString()} examens
-              </p>
-              <p className="text-xs text-blue-700 mt-1">
-                Taux de détection positif: {resultsData[1].percentage}%
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Indicateurs détaillés */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-6">Indicateurs d'efficacité</h3>
-          <div className="grid grid-cols-3 gap-6">
-            <div className="border-r border-gray-200 pr-6">
-              <p className="text-sm text-gray-500 mb-2">Délai moyen invitation → examen</p>
-              <p className="text-2xl font-bold text-gray-900">28 jours</p>
-              <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
-                Amélioration de 15%
-              </p>
-            </div>
-            <div className="border-r border-gray-200 pr-6">
-              <p className="text-sm text-gray-500 mb-2">Délai moyen examen → résultats</p>
-              <p className="text-2xl font-bold text-gray-900">12 jours</p>
-              <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
-                Amélioration de 8%
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-2">Taux de suivi post-dépistage</p>
-              <p className="text-2xl font-bold text-gray-900">94.2%</p>
-              <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
-                Amélioration de 3%
-              </p>
             </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function KpiCard({
+  icon: Icon,
+  iconClassName,
+  label,
+  value,
+  comparison,
+}: {
+  icon: typeof TrendingUp;
+  iconClassName: string;
+  label: string;
+  value: string;
+  comparison: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-6">
+      <div className="flex items-center justify-between gap-4">
+        <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${iconClassName}`}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <span className="text-xs font-medium text-emerald-700">Benchmark actif</span>
+      </div>
+      <p className="mt-4 text-sm text-slate-500">{label}</p>
+      <p className="mt-1 text-3xl font-bold text-slate-900">{value}</p>
+      <p className="mt-2 text-xs text-slate-500">{comparison}</p>
+    </div>
+  );
+}
+
+function MetricMini({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-white px-3 py-2">
+      <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="mt-1 font-semibold text-slate-900">{value}</p>
     </div>
   );
 }
