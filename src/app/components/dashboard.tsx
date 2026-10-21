@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from "react-router";
 import {
   Activity,
+  BookOpen,
   ChevronDown,
   Database,
   FileText,
@@ -35,6 +36,7 @@ const NAV_ITEMS: Record<UserRole, NavItem[]> = {
     { to: "/messaging", label: "Messagerie", icon: Mail },
     { to: "/reports", label: "Rapports", icon: FileText },
     { to: "/data", label: "Data", icon: Database },
+    { to: "/documentation", label: "Documentation", icon: BookOpen },
     { to: "/settings", label: "Paramètres", icon: Settings },
   ],
   patient: [
@@ -43,6 +45,7 @@ const NAV_ITEMS: Record<UserRole, NavItem[]> = {
     { to: "/messaging", label: "Messagerie", icon: Mail },
     { to: "/reports", label: "Documents", icon: FileText },
     { to: "/data", label: "Data", icon: Database },
+    { to: "/documentation", label: "Documentation", icon: BookOpen },
     { to: "/settings", label: "Préférences", icon: Settings },
   ],
   practitioner: [
@@ -51,6 +54,7 @@ const NAV_ITEMS: Record<UserRole, NavItem[]> = {
     { to: "/messaging", label: "Messagerie", icon: Mail },
     { to: "/reports", label: "Indicateurs", icon: FileText },
     { to: "/data", label: "Data", icon: Database },
+    { to: "/documentation", label: "Documentation", icon: BookOpen },
     { to: "/settings", label: "Configuration", icon: Settings },
   ],
 };
