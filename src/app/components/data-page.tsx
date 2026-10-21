@@ -2512,9 +2512,9 @@ export function DataPage() {
                 <Database className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-xl font-bold">Data</h1>
+                <h1 className="text-xl font-bold">API</h1>
                 <p className="mt-0.5 text-sm text-slate-400">
-                  Inspecteur IndexedDB du faux backend Firestore.
+                  Explorateur et inspecteur des endpoints du faux backend Firestore.
                 </p>
               </div>
             </div>

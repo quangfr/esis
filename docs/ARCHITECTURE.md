@@ -429,7 +429,9 @@ stateDiagram-v2
 
 ---
 
-## 6. Règles Opérationnelles et Limites
+## 6. Règles Opérationnelles et Navigation
 
+- **Onglet Données (`/donnees`)** : Visualisation matricielle d'exemples réels (10 patients, 10 dossiers complets, 10 examens avec l'ensemble de leurs propriétés en colonnes et export JSON).
+- **Onglet API (`/api`)** : Inspecteur interactif des endpoints du faux backend Firestore (routes, payloads, simulation de réponses et réinitialisation).
 - **Persistance locale** : Les données modifiées restent stockées dans l'IndexedDB du profil de navigateur local.
-- **Réinitialisation** : Le bouton de réinitialisation disponible dans l'onglet Data / Paramètres déclenche `POST /seed` et recharge le jeu de données d'origine ([demo-data.json](file:///c:/Users/Quang/Documents/GitHub/esis/src/app/data/demo-data.json)).
+- **Réinitialisation** : Le bouton de réinitialisation disponible dans l'onglet API ou Paramètres déclenche `POST /seed` et recharge le jeu de données d'origine ([demo-data.json](file:///c:/Users/Quang/Documents/GitHub/esis/src/app/data/demo-data.json)).
