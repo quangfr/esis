@@ -485,8 +485,6 @@ export function DocumentationPage() {
         </div>
       )}
 
-      {/* Tab Content: Functional & Roles */}
-      {activeTab === "functional" && (
       {/* Tab Content: Périmètre Fonctionnel Métier */}
       {activeTab === "functional" && (
         <div className="space-y-6">
