@@ -215,28 +215,28 @@ export function UmlViewer() {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden flex flex-col">
       {/* Top Toolbar */}
-      <div className="px-5 py-3.5 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-3 border-b border-slate-800">
-        <div className="flex items-center gap-2.5">
-          <span className="w-3 h-3 rounded-full bg-blue-400 animate-pulse"></span>
-          <span className="font-semibold text-sm">Mermaid Viewer</span>
-          <span className="text-xs text-slate-400 border-l border-slate-700 pl-2.5">
+      <div className="px-4 py-2.5 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-800 shrink-0">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse"></span>
+          <span className="font-semibold text-xs tracking-tight">Mermaid Viewer</span>
+          <span className="text-[11px] text-slate-400 border-l border-slate-700 pl-2">
             {activeDiagram === "schema"
-              ? "Schéma Entités-Relations (Données ESIS)"
-              : "Flux Parcours Patient (Séquence)"}
+              ? "Schéma Entités-Relations"
+              : "Flux Parcours Patient"}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Diagram Selector */}
-          <div className="flex bg-slate-800 p-1 rounded-lg text-xs font-medium">
+          <div className="flex bg-slate-800 p-0.5 rounded-md text-xs font-medium">
             <button
               onClick={() => {
                 setActiveDiagram("schema");
                 setZoom(1);
               }}
-              className={`px-3 py-1 rounded transition-colors ${
+              className={`px-2.5 py-1 rounded transition-colors ${
                 activeDiagram === "schema" ? "bg-blue-600 text-white shadow-xs" : "text-slate-300 hover:text-white"
               }`}
             >
@@ -247,7 +247,7 @@ export function UmlViewer() {
                 setActiveDiagram("flow");
                 setZoom(1);
               }}
-              className={`px-3 py-1 rounded transition-colors ${
+              className={`px-2.5 py-1 rounded transition-colors ${
                 activeDiagram === "flow" ? "bg-blue-600 text-white shadow-xs" : "text-slate-300 hover:text-white"
               }`}
             >
@@ -256,10 +256,10 @@ export function UmlViewer() {
           </div>
 
           {/* View Mode: Rendered Diagram vs Source Code */}
-          <div className="flex bg-slate-800 p-1 rounded-lg text-xs font-medium">
+          <div className="flex bg-slate-800 p-0.5 rounded-md text-xs font-medium">
             <button
               onClick={() => setViewMode("rendered")}
-              className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1 ${
+              className={`px-2 py-1 rounded transition-colors flex items-center gap-1 ${
                 viewMode === "rendered" ? "bg-slate-700 text-white shadow-xs" : "text-slate-400 hover:text-white"
               }`}
               title="Affichage graphique"
@@ -268,7 +268,7 @@ export function UmlViewer() {
             </button>
             <button
               onClick={() => setViewMode("code")}
-              className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1 ${
+              className={`px-2 py-1 rounded transition-colors flex items-center gap-1 ${
                 viewMode === "code" ? "bg-slate-700 text-white shadow-xs" : "text-slate-400 hover:text-white"
               }`}
               title="Code source Mermaid"
@@ -279,7 +279,7 @@ export function UmlViewer() {
 
           {/* Zoom controls (only in rendered mode) */}
           {viewMode === "rendered" && (
-            <div className="flex items-center gap-1 bg-slate-800 px-2 py-1 rounded-lg text-slate-300">
+            <div className="flex items-center gap-1 bg-slate-800 px-1.5 py-0.5 rounded-md text-slate-300">
               <button
                 onClick={() => setZoom((z) => Math.max(0.6, z - 0.1))}
                 className="p-1 hover:text-white"
@@ -287,7 +287,7 @@ export function UmlViewer() {
               >
                 <ZoomOut className="w-3.5 h-3.5" />
               </button>
-              <span className="text-[11px] font-mono w-10 text-center">{Math.round(zoom * 100)}%</span>
+              <span className="text-[11px] font-mono w-9 text-center">{Math.round(zoom * 100)}%</span>
               <button
                 onClick={() => setZoom((z) => Math.min(1.6, z + 0.1))}
                 className="p-1 hover:text-white"
@@ -297,7 +297,7 @@ export function UmlViewer() {
               </button>
               <button
                 onClick={() => setZoom(1)}
-                className="p-1 hover:text-white border-l border-slate-700 ml-1 pl-1"
+                className="p-1 hover:text-white border-l border-slate-700 ml-0.5 pl-1"
                 title="Réinitialiser"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -308,39 +308,36 @@ export function UmlViewer() {
           {/* Copy Button */}
           <button
             onClick={() => handleCopy(currentMermaidCode)}
-            className="text-xs px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg flex items-center gap-1.5 border border-slate-700 ml-1"
+            className="text-xs px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md flex items-center gap-1 border border-slate-700 ml-0.5"
             title="Copier le code Mermaid"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-            {copied ? "Copié !" : "Copier"}
+            {copied ? "Copié" : "Copier"}
           </button>
         </div>
       </div>
 
-      {/* RENDERED MERMAID VIEWER */}
+      {/* RENDERED MERMAID VIEWER (Full height, no scroll container) */}
       {viewMode === "rendered" && (
-        <div className="p-6 bg-slate-50 min-h-[550px] overflow-auto flex items-center justify-center">
+        <div className="p-4 sm:p-6 bg-slate-50 flex items-center justify-center overflow-visible">
           {isLoading && (
-            <div className="flex items-center gap-2.5 text-sm text-slate-600 py-20">
-              <RefreshCw className="w-5 h-5 animate-spin text-blue-600" />
-              Génération vectorielle Mermaid du diagramme...
+            <div className="flex items-center gap-2 text-xs text-slate-600 py-12">
+              <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
+              Génération du diagramme vectoriel...
             </div>
           )}
 
           {!isLoading && !hasError && svgContent && (
             <div
               ref={containerRef}
-              className="w-full flex justify-center transition-transform origin-top duration-150"
+              className="w-full flex justify-center transition-transform origin-top duration-150 [&>svg]:w-full [&>svg]:h-auto [&>svg]:max-w-none"
               style={{ transform: `scale(${zoom})`, transformOrigin: "top center" }}
               dangerouslySetInnerHTML={{ __html: svgContent }}
             />
           )}
 
           {!isLoading && hasError && (
-            <div className="w-full text-center py-10">
-              <p className="text-sm text-gray-600 mb-3">
-                Rendu visuel vectoriel du diagramme Mermaid :
-              </p>
+            <div className="w-full text-center py-4">
               <img
                 src={`https://mermaid.ink/svg/${btoa(unescape(encodeURIComponent(currentMermaidCode)))}`}
                 alt="Mermaid Diagram"
@@ -354,7 +351,7 @@ export function UmlViewer() {
 
       {/* CODE SOURCE VIEW */}
       {viewMode === "code" && (
-        <div className="p-6 bg-slate-950 text-slate-100 min-h-[500px]">
+        <div className="p-4 bg-slate-950 text-slate-100">
           <pre className="p-4 bg-slate-900 border border-slate-800 rounded-lg font-mono text-xs overflow-x-auto leading-relaxed text-cyan-300">
             {currentMermaidCode}
           </pre>
