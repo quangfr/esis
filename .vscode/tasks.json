@@ -4,7 +4,7 @@
     {
       "label": "Start Vite",
       "type": "shell",
-      "command": "npm run dev -- --host 127.0.0.1",
+      "command": "$env:Path = 'C:\\Program Files\\nodejs;' + $env:Path; & 'C:\\Program Files\\nodejs\\npm.cmd' run dev -- --host 127.0.0.1",
       "isBackground": true,
       "problemMatcher": {
         "owner": "custom",
@@ -14,7 +14,7 @@
         "background": {
           "activeOnStart": true,
           "beginsPattern": ".",
-          "endsPattern": "Local:\\s+http://127\\.0\\.0\\.1:5173/?"
+          "endsPattern": "Local:\\s+http://127\\.0\\.0\\.1:5173/.*"
         }
       },
       "presentation": {
@@ -26,7 +26,7 @@
     {
       "label": "Stop Vite",
       "type": "shell",
-      "command": "bash -lc \"pkill -f 'vite --host 127.0.0.1' || true\"",
+      "command": "Stop-Process -Name node -ErrorAction SilentlyContinue",
       "problemMatcher": []
     }
   ]
