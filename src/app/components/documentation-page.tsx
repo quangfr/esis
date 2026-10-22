@@ -9,6 +9,16 @@ import {
   CheckCircle2,
   ChevronRight,
   Table as TableIcon,
+  ShieldCheck,
+  Users,
+  Activity,
+  FileText,
+  Mail,
+  Stethoscope,
+  UserCheck,
+  CalendarClock,
+  Send,
+  AlertTriangle,
 } from "lucide-react";
 import { UmlViewer } from "./uml-viewer";
 
@@ -477,106 +487,247 @@ export function DocumentationPage() {
 
       {/* Tab Content: Functional & Roles */}
       {activeTab === "functional" && (
+      {/* Tab Content: Périmètre Fonctionnel Métier */}
+      {activeTab === "functional" && (
         <div className="space-y-6">
+          {/* Section 1: Finalité & Vision Métier */}
           <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-xs">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Boxes className="w-5 h-5 text-blue-600" />
-              Objectifs Métier d'ESIS
-            </h2>
-            <p className="text-gray-600 text-sm leading-relaxed mb-4">
-              La plateforme <strong>ESIS</strong> (Enrôlement & Suivi des Dépistages Organisés) a pour objectif
-              d'orchestrer, fluidifier et sécuriser l'ensemble de la chaîne de dépistage précoce des cancers
-              (<strong>Dépistage du cancer du sein</strong>, <strong>colorectal</strong> et <strong>col de l'utérus</strong>).
-              Elle centralise les interactions entre la coordination régionale, les professionnels de santé de ville/hospitaliers
-              et les usagers éligibles.
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="p-2 bg-blue-50 text-blue-700 rounded-lg">
+                <Boxes className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Périmètre Métier & Mission de la Plateforme ESIS
+                </h2>
+                <p className="text-xs text-gray-500">
+                  Dispositif régional d'Enrôlement et de Suivi des Dépistages Organisés des Cancers (cahier des charges INCa / DGS).
+                </p>
+              </div>
+            </div>
+
+            <p className="text-gray-700 text-sm leading-relaxed mb-4">
+              La plateforme <strong>ESIS</strong> a pour finalité d’orchestrer l'ensemble de la chaîne de dépistage organisé des cancers
+              sur un territoire de santé. Elle fluidifie la coopération entre les <strong>Centres Régionaux de Coordination des Dépistages des Cancers (CRCDC)</strong>,
+              les <strong>professionnels de santé de premier et second recours</strong> (médecins traitants, radiologues, gynécologues, gastro-entérologues, anatomopathologistes)
+              et les <strong>usagers éligibles</strong>.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm mb-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-                  Gestionnaire / Coordinateur
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-2">
+              <div className="p-3 bg-blue-50/60 rounded-lg border border-blue-100">
+                <div className="text-blue-900 font-semibold text-xs flex items-center gap-1.5 mb-1">
+                  <ShieldCheck className="w-4 h-4 text-blue-600" /> Exhaustivité Populationnelle
                 </div>
-                <p className="text-xs text-gray-600 leading-relaxed mb-3">
-                  Supervise les cohortes éligibles, gère les flux d'invitations et de relances, suit les taux de participation
-                  et traite les anomalies ou dossiers prioritaires.
+                <p className="text-[11px] text-blue-800/80 leading-relaxed">
+                  Ciblage automatique des populations éligibles par tranches d'âge et NIR sans discrimination géographique ou sociale.
                 </p>
-                <div className="space-y-1.5 text-xs text-gray-700">
-                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-blue-500" /> Pilotage des cohortes</div>
-                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-blue-500" /> Enrôlement de patients</div>
-                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-blue-500" /> Assignation des tâches</div>
+              </div>
+
+              <div className="p-3 bg-teal-50/60 rounded-lg border border-teal-100">
+                <div className="text-teal-900 font-semibold text-xs flex items-center gap-1.5 mb-1">
+                  <CalendarClock className="w-4 h-4 text-teal-600" /> Cadencement & Relances
+                </div>
+                <p className="text-[11px] text-teal-800/80 leading-relaxed">
+                  Automatisation des cycles d'invitation (2 à 5 ans), gestion des kits postaux et relances multicanales (courrier, SMS, portail).
+                </p>
+              </div>
+
+              <div className="p-3 bg-indigo-50/60 rounded-lg border border-indigo-100">
+                <div className="text-indigo-900 font-semibold text-xs flex items-center gap-1.5 mb-1">
+                  <Activity className="w-4 h-4 text-indigo-600" /> Assurance Qualité Médicale
+                </div>
+                <p className="text-[11px] text-indigo-800/80 leading-relaxed">
+                  Double lecture systématique des mammographies, traçabilité des lots de tests FIT et standardisation des comptes-rendus.
+                </p>
+              </div>
+
+              <div className="p-3 bg-purple-50/60 rounded-lg border border-purple-100">
+                <div className="text-purple-900 font-semibold text-xs flex items-center gap-1.5 mb-1">
+                  <AlertTriangle className="w-4 h-4 text-purple-600" /> Prise en Charge Prioritaire
+                </div>
+                <p className="text-[11px] text-purple-800/80 leading-relaxed">
+                  Circuit court d'alerte et orientation rapide vers les bilans diagnostiques spécialisés en cas d'anomalie détectée.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 2: Programmes Cliniques Couverts */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-xs">
+            <h2 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <GitBranch className="w-5 h-5 text-blue-600" />
+              1. Les 3 Programmes Cliniques de Dépistage Organisé
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Sein */}
+              <div className="p-4 border border-pink-200 bg-pink-50/30 rounded-xl flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-pink-100 text-pink-700 uppercase tracking-wide">
+                      Cancer du Sein
+                    </span>
+                    <span className="text-[11px] font-mono font-medium text-pink-900">50 – 74 ans</span>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 text-sm mb-1.5">Mammographie numérique bilatérale</h3>
+                  <p className="text-xs text-gray-600 leading-relaxed mb-3">
+                    Examen clinique des seins couplé à une mammographie (2 incidences par sein). En cas de cliché initialement normal (ACR 1 ou 2),
+                    une <strong>seconde lecture indépendante</strong> par un radiologue expert est réalisée.
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-pink-100 text-[11px] text-gray-700 space-y-1">
+                  <div><strong>Rythme :</strong> Tous les 2 ans</div>
+                  <div><strong>Indicateur :</strong> Classification BI-RADS / ACR (1 à 5)</div>
+                  <div><strong>Étape suivante :</strong> Échographie / Biopsie si ACR 4-5</div>
                 </div>
               </div>
 
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm mb-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-teal-600"></span>
-                  Professionnel de Santé (Praticien)
+              {/* Colorectal */}
+              <div className="p-4 border border-blue-200 bg-blue-50/30 rounded-xl flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 uppercase tracking-wide">
+                      Cancer Colorectal
+                    </span>
+                    <span className="text-[11px] font-mono font-medium text-blue-900">50 – 74 ans (H & F)</span>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 text-sm mb-1.5">Test immunologique fécal (FIT)</h3>
+                  <p className="text-xs text-gray-600 leading-relaxed mb-3">
+                    Recherche de sang occulte dans les selles par test immunologique haute sensibilité en prélèvement unique à domicile,
+                    commandé en ligne, remis par le médecin traitant ou retiré en pharmacie.
+                  </p>
                 </div>
-                <p className="text-xs text-gray-600 leading-relaxed mb-3">
-                  Médecins traitants, radiologues, gynécologues ou gastro-entérologues réalisant les examens de dépistage
-                  et consignant les résultats cliniques.
-                </p>
-                <div className="space-y-1.5 text-xs text-gray-700">
-                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-teal-500" /> Consultation dossier clinique</div>
-                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-teal-500" /> Validation des comptes-rendus</div>
-                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-teal-500" /> Messagerie sécurisée inter-pro</div>
+                <div className="pt-3 border-t border-blue-100 text-[11px] text-gray-700 space-y-1">
+                  <div><strong>Rythme :</strong> Tous les 2 ans</div>
+                  <div><strong>Indicateur :</strong> Négatif (&lt; 150 ng/ml) ou Positif (seuil dépassé)</div>
+                  <div><strong>Étape suivante :</strong> Coloscopie de diagnostic sous sédation si test positif</div>
                 </div>
               </div>
 
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm mb-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
-                  Usager / Patient
+              {/* Col Utérus */}
+              <div className="p-4 border border-purple-200 bg-purple-50/30 rounded-xl flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 uppercase tracking-wide">
+                      Col de l'Utérus
+                    </span>
+                    <span className="text-[11px] font-mono font-medium text-purple-900">25 – 65 ans</span>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 text-sm mb-1.5">Test HPV-HR & Examen cytologique (FCU)</h3>
+                  <p className="text-xs text-gray-600 leading-relaxed mb-3">
+                    Stratégie adaptée à l'âge : cytologie cervico-utérine de 25 à 29 ans (2 tests à 1 an puis à 3 ans),
+                    puis dépistage primaire par <strong>test moléculaire HPV-HR</strong> de 30 à 65 ans.
+                  </p>
                 </div>
-                <p className="text-xs text-gray-600 leading-relaxed mb-3">
-                  Consulte son statut d'éligibilité, ses rendez-vous, remplit ses questionnaires de pré-dépistage
-                  et accède à ses comptes-rendus numérisés.
-                </p>
-                <div className="space-y-1.5 text-xs text-gray-700">
-                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-indigo-500" /> Suivi du calendrier personnel</div>
-                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-indigo-500" /> Remplissage formulaires en ligne</div>
-                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-indigo-500" /> Réception sécurisée des résultats</div>
+                <div className="pt-3 border-t border-purple-100 text-[11px] text-gray-700 space-y-1">
+                  <div><strong>Rythme :</strong> Tous les 3 ans (25-29 ans) puis tous les 5 ans (30-65 ans)</div>
+                  <div><strong>Indicateur :</strong> Présence / Absence d'HPV à haut risque oncogène</div>
+                  <div><strong>Étape suivante :</strong> Cytologie réflexe / Colposcopie si HPV+</div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Programmes de dépistage */}
+          {/* Section 3: Chaîne Fonctionnelle de Bout en Bout */}
           <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-xs">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <GitBranch className="w-5 h-5 text-blue-600" />
-              Programmes de Dépistage Pris en Charge
+            <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Workflow className="w-5 h-5 text-blue-600" />
+              2. Les 4 Piliers Fonctionnels de l'Application
             </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 border border-slate-200 rounded-lg bg-slate-50/40">
+                <div className="flex items-center gap-2 font-semibold text-gray-900 text-xs mb-1.5">
+                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">1</span>
+                  Identification, Éligibilité & Campagne d'Invitation
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Constitution des fichiers cibles par croisement d'âge et historique médical. Envoi des convocations nominatives avec bon de prise en charge à 100% sans avance de frais.
+                </p>
+              </div>
+
+              <div className="p-4 border border-slate-200 rounded-lg bg-slate-50/40">
+                <div className="flex items-center gap-2 font-semibold text-gray-900 text-xs mb-1.5">
+                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">2</span>
+                  Enrôlement, Consentement & Questionnaire Médical
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Adhésion de l'usager par le portail numérique, validation du consentement éclairé (RGPD) et recueil des critères de risque ou antécédents familiaux.
+                </p>
+              </div>
+
+              <div className="p-4 border border-slate-200 rounded-lg bg-slate-50/40">
+                <div className="flex items-center gap-2 font-semibold text-gray-900 text-xs mb-1.5">
+                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">3</span>
+                  Exécution Clinique, Télétransmission & Double Lecture
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Saisie ou téléversement des comptes-rendus par les centres agréés. Gestion du circuit d'assurance qualité avec affectation aléatoire à un second lecteur indépendant.
+                </p>
+              </div>
+
+              <div className="p-4 border border-slate-200 rounded-lg bg-slate-50/40">
+                <div className="flex items-center gap-2 font-semibold text-gray-900 text-xs mb-1.5">
+                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]">4</span>
+                  Clôture de Cycle ou Déclenchement Bilan Diagnostique
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Si résultat normal : archivage de l'épisode et calcul du prochain rappel à échéance. Si anomalie : création d'une alerte prioritaire, tâche de relance et suivi de l'orientation.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 4: Acteurs & Matrice de Droits Métier */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-xs">
+            <h2 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <Users className="w-5 h-5 text-blue-600" />
+              3. Profils Utilisateurs & Espaces Métier
+            </h2>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 border border-pink-100 bg-pink-50/50 rounded-lg">
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-pink-100 text-pink-700 uppercase">
-                  Dépistage Sein
-                </span>
-                <h3 className="font-semibold text-gray-900 mt-2 text-sm">Mammographie & Examen Clinique</h3>
-                <p className="text-xs text-gray-600 mt-1">
-                  Public cible : Femmes 50-74 ans. Rythme : tous les 2 ans avec double lecture systématique des clichés radiologiques.
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 font-semibold text-slate-900 text-xs mb-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                  Espace Gestionnaire / CRCDC
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed mb-3">
+                  Supervise l'ensemble des cohortes départementales et régionales, gère les flux postaux/SMS, suit les non-répondants et résout les dossiers bloqués.
                 </p>
+                <div className="space-y-1 text-[11px] text-gray-700 font-medium">
+                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-blue-600" /> Pilotage des cohortes & statistiques</div>
+                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-blue-600" /> Gestion des relances & enrôlements</div>
+                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-blue-600" /> Attribution des tâches de coordination</div>
+                </div>
               </div>
 
-              <div className="p-4 border border-blue-100 bg-blue-50/50 rounded-lg">
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 uppercase">
-                  Dépistage Colorectal
-                </span>
-                <h3 className="font-semibold text-gray-900 mt-2 text-sm">Test Immunologique Fécal (FIT)</h3>
-                <p className="text-xs text-gray-600 mt-1">
-                  Public cible : Hommes et femmes 50-74 ans. Commande/envoi de kit à domicile ou remise en cabinet/pharmacie.
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 font-semibold text-slate-900 text-xs mb-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-teal-600"></span>
+                  Espace Praticien Référent / Centre
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed mb-3">
+                  Permet aux médecins traitants, radiologues et spécialistes de consulter l'historique de leurs patients, consigner les actes et télétransmettre les bilans.
                 </p>
+                <div className="space-y-1 text-[11px] text-gray-700 font-medium">
+                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-teal-600" /> Consultation de la patientèle active</div>
+                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-teal-600" /> Validation & signature des comptes-rendus</div>
+                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-teal-600" /> Messagerie sécurisée interprofessionnelle</div>
+                </div>
               </div>
 
-              <div className="p-4 border border-purple-100 bg-purple-50/50 rounded-lg">
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 uppercase">
-                  Dépistage Col de l'Utérus
-                </span>
-                <h3 className="font-semibold text-gray-900 mt-2 text-sm">Test HPV-HR & Frottis (FCU)</h3>
-                <p className="text-xs text-gray-600 mt-1">
-                  Public cible : Femmes 25-65 ans. Test cytologique (25-29 ans) puis test HPV-HR tous les 5 ans (30-65 ans).
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 font-semibold text-slate-900 text-xs mb-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+                  Espace Usager / Patiente
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed mb-3">
+                  Offre à l'usager une vue claire et rassurante de son parcours de prévention, son calendrier d'échéances et ses documents médicaux sécurisés.
                 </p>
+                <div className="space-y-1 text-[11px] text-gray-700 font-medium">
+                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-indigo-600" /> Suivi personnalisé de la timeline de soins</div>
+                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-indigo-600" /> Consultation & téléchargement des résultats</div>
+                  <div className="flex items-center gap-1.5"><ChevronRight className="w-3.5 h-3.5 text-indigo-600" /> Échanges sécurisés avec la coordination</div>
+                </div>
               </div>
             </div>
           </div>
