@@ -54,13 +54,13 @@ type ApiResponseState = {
 };
 
 const ROUTE_PRESETS: RoutePreset[] = [
-  { label: "Get collections overview", method: "GET", route: "/collections", body: "" },
-  { label: "Get patients collection", method: "GET", route: "/patients", body: "" },
-  { label: "Get patient by ID", method: "GET", route: "/patients/pt-1", body: "" },
-  { label: "Get patient episodes", method: "GET", route: "/patients/pt-1/episodes", body: "" },
-  { label: "Get patient episode by ID", method: "GET", route: "/patients/pt-1/episodes/ep-1", body: "" },
+  { label: "Vue d'ensemble des collections", method: "GET", route: "/collections", body: "" },
+  { label: "Consulter la collection des patients", method: "GET", route: "/patients", body: "" },
+  { label: "Consulter un patient par identifiant", method: "GET", route: "/patients/pt-1", body: "" },
+  { label: "Consulter les épisodes d'un patient", method: "GET", route: "/patients/pt-1/episodes", body: "" },
+  { label: "Consulter un épisode par identifiant", method: "GET", route: "/patients/pt-1/episodes/ep-1", body: "" },
   {
-    label: "Create patient episode",
+    label: "Créer un épisode de dépistage",
     method: "POST",
     route: "/patients/pt-1/episodes",
     body: JSON.stringify(
@@ -76,7 +76,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Replace patient episode",
+    label: "Remplacer un épisode (PUT)",
     method: "PUT",
     route: "/patients/pt-1/episodes/ep-1",
     body: JSON.stringify(
@@ -92,7 +92,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Patch patient episode",
+    label: "Modifier un épisode (PATCH)",
     method: "PATCH",
     route: "/patients/pt-1/episodes/ep-1",
     body: JSON.stringify(
@@ -104,11 +104,11 @@ const ROUTE_PRESETS: RoutePreset[] = [
       2,
     ),
   },
-  { label: "Delete patient episode", method: "DELETE", route: "/patients/pt-1/episodes/ep-1", body: "" },
-  { label: "Get patient tasks", method: "GET", route: "/patients/pt-1/tasks", body: "" },
-  { label: "Get patient task by ID", method: "GET", route: "/patients/pt-1/tasks/task-1", body: "" },
+  { label: "Supprimer un épisode", method: "DELETE", route: "/patients/pt-1/episodes/ep-1", body: "" },
+  { label: "Consulter les tâches d'un patient", method: "GET", route: "/patients/pt-1/tasks", body: "" },
+  { label: "Consulter une tâche par identifiant", method: "GET", route: "/patients/pt-1/tasks/task-1", body: "" },
   {
-    label: "Create patient task",
+    label: "Créer une tâche patient",
     method: "POST",
     route: "/patients/pt-1/tasks",
     body: JSON.stringify(
@@ -125,7 +125,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Replace patient task",
+    label: "Remplacer une tâche (PUT)",
     method: "PUT",
     route: "/patients/pt-1/tasks/task-1",
     body: JSON.stringify(
@@ -142,7 +142,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Patch patient task",
+    label: "Modifier une tâche (PATCH)",
     method: "PATCH",
     route: "/patients/pt-1/tasks/task-1",
     body: JSON.stringify(
@@ -154,11 +154,11 @@ const ROUTE_PRESETS: RoutePreset[] = [
       2,
     ),
   },
-  { label: "Delete patient task", method: "DELETE", route: "/patients/pt-1/tasks/task-1", body: "" },
-  { label: "Get patient enrollments", method: "GET", route: "/patients/pt-1/enrollments", body: "" },
-  { label: "Get patient enrollment by ID", method: "GET", route: "/patients/pt-1/enrollments/enr-1", body: "" },
+  { label: "Supprimer une tâche", method: "DELETE", route: "/patients/pt-1/tasks/task-1", body: "" },
+  { label: "Consulter les enrôlements d'un patient", method: "GET", route: "/patients/pt-1/enrollments", body: "" },
+  { label: "Consulter un enrôlement par identifiant", method: "GET", route: "/patients/pt-1/enrollments/enr-1", body: "" },
   {
-    label: "Create patient enrollment",
+    label: "Créer un enrôlement",
     method: "POST",
     route: "/patients/pt-1/enrollments",
     body: JSON.stringify(
@@ -174,7 +174,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Replace patient enrollment",
+    label: "Remplacer un enrôlement (PUT)",
     method: "PUT",
     route: "/patients/pt-1/enrollments/enr-1",
     body: JSON.stringify(
@@ -190,7 +190,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Patch patient enrollment",
+    label: "Modifier un enrôlement (PATCH)",
     method: "PATCH",
     route: "/patients/pt-1/enrollments/enr-1",
     body: JSON.stringify(
@@ -202,13 +202,13 @@ const ROUTE_PRESETS: RoutePreset[] = [
       2,
     ),
   },
-  { label: "Delete patient enrollment", method: "DELETE", route: "/patients/pt-1/enrollments/enr-1", body: "" },
-  { label: "Get patient programs", method: "GET", route: "/patients/pt-1/programs", body: "" },
-  { label: "Get patient program by type", method: "GET", route: "/patients/pt-1/programs/Sein", body: "" },
-  { label: "Get patient program documents", method: "GET", route: "/patients/pt-1/programs/Sein/documents", body: "" },
-  { label: "Get patient program document by ID", method: "GET", route: "/patients/pt-1/programs/Sein/documents/doc-1", body: "" },
+  { label: "Supprimer un enrôlement", method: "DELETE", route: "/patients/pt-1/enrollments/enr-1", body: "" },
+  { label: "Consulter les programmes d'un patient", method: "GET", route: "/patients/pt-1/programs", body: "" },
+  { label: "Consulter un programme par organe", method: "GET", route: "/patients/pt-1/programs/Sein", body: "" },
+  { label: "Consulter les documents d'un programme", method: "GET", route: "/patients/pt-1/programs/Sein/documents", body: "" },
+  { label: "Consulter un document par identifiant", method: "GET", route: "/patients/pt-1/programs/Sein/documents/doc-1", body: "" },
   {
-    label: "Create patient program document",
+    label: "Créer un document de programme",
     method: "POST",
     route: "/patients/pt-1/programs/Sein/documents",
     body: JSON.stringify(
@@ -227,7 +227,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Replace patient program document",
+    label: "Remplacer un document (PUT)",
     method: "PUT",
     route: "/patients/pt-1/programs/Sein/documents/doc-1",
     body: JSON.stringify(
@@ -246,7 +246,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Patch patient program document",
+    label: "Modifier un document (PATCH)",
     method: "PATCH",
     route: "/patients/pt-1/programs/Sein/documents/doc-1",
     body: JSON.stringify(
@@ -258,11 +258,11 @@ const ROUTE_PRESETS: RoutePreset[] = [
       2,
     ),
   },
-  { label: "Delete patient program document", method: "DELETE", route: "/patients/pt-1/programs/Sein/documents/doc-1", body: "" },
-  { label: "Get patient program forms", method: "GET", route: "/patients/pt-1/programs/Sein/formulaires", body: "" },
-  { label: "Get patient program form by ID", method: "GET", route: "/patients/pt-1/programs/Sein/formulaires/form-1", body: "" },
+  { label: "Supprimer un document", method: "DELETE", route: "/patients/pt-1/programs/Sein/documents/doc-1", body: "" },
+  { label: "Consulter les formulaires d'un programme", method: "GET", route: "/patients/pt-1/programs/Sein/formulaires", body: "" },
+  { label: "Consulter un formulaire par identifiant", method: "GET", route: "/patients/pt-1/programs/Sein/formulaires/form-1", body: "" },
   {
-    label: "Create patient program form",
+    label: "Créer un formulaire de programme",
     method: "POST",
     route: "/patients/pt-1/programs/Sein/formulaires",
     body: JSON.stringify(
@@ -278,7 +278,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Replace patient program form",
+    label: "Remplacer un formulaire (PUT)",
     method: "PUT",
     route: "/patients/pt-1/programs/Sein/formulaires/form-1",
     body: JSON.stringify(
@@ -294,7 +294,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Patch patient program form",
+    label: "Modifier un formulaire (PATCH)",
     method: "PATCH",
     route: "/patients/pt-1/programs/Sein/formulaires/form-1",
     body: JSON.stringify(
@@ -305,11 +305,11 @@ const ROUTE_PRESETS: RoutePreset[] = [
       2,
     ),
   },
-  { label: "Delete patient program form", method: "DELETE", route: "/patients/pt-1/programs/Sein/formulaires/form-1", body: "" },
-  { label: "Get patient program exams", method: "GET", route: "/patients/pt-1/programs/Sein/examens", body: "" },
-  { label: "Get patient program exam by name", method: "GET", route: "/patients/pt-1/programs/Sein/examens/Mammographie", body: "" },
+  { label: "Supprimer un formulaire", method: "DELETE", route: "/patients/pt-1/programs/Sein/formulaires/form-1", body: "" },
+  { label: "Consulter les examens d'un programme", method: "GET", route: "/patients/pt-1/programs/Sein/examens", body: "" },
+  { label: "Consulter un examen par libellé", method: "GET", route: "/patients/pt-1/programs/Sein/examens/Mammographie", body: "" },
   {
-    label: "Create patient program exam",
+    label: "Créer un examen médical",
     method: "POST",
     route: "/patients/pt-1/programs/Sein/examens",
     body: JSON.stringify(
@@ -323,7 +323,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Replace patient program exam",
+    label: "Remplacer un examen (PUT)",
     method: "PUT",
     route: "/patients/pt-1/programs/Sein/examens/Mammographie",
     body: JSON.stringify(
@@ -337,7 +337,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Patch patient program exam",
+    label: "Modifier un examen (PATCH)",
     method: "PATCH",
     route: "/patients/pt-1/programs/Sein/examens/Mammographie",
     body: JSON.stringify(
@@ -348,11 +348,11 @@ const ROUTE_PRESETS: RoutePreset[] = [
       2,
     ),
   },
-  { label: "Delete patient program exam", method: "DELETE", route: "/patients/pt-1/programs/Sein/examens/Mammographie", body: "" },
-  { label: "Get patient program timeline", method: "GET", route: "/patients/pt-1/programs/Sein/timeline", body: "" },
-  { label: "Get patient program timeline step by ID", method: "GET", route: "/patients/pt-1/programs/Sein/timeline/step-1", body: "" },
+  { label: "Supprimer un examen", method: "DELETE", route: "/patients/pt-1/programs/Sein/examens/Mammographie", body: "" },
+  { label: "Consulter la chronologie du programme (timeline)", method: "GET", route: "/patients/pt-1/programs/Sein/timeline", body: "" },
+  { label: "Consulter un jalon chronologique par identifiant", method: "GET", route: "/patients/pt-1/programs/Sein/timeline/step-1", body: "" },
   {
-    label: "Create patient program timeline step",
+    label: "Créer un jalon chronologique (timeline)",
     method: "POST",
     route: "/patients/pt-1/programs/Sein/timeline",
     body: JSON.stringify(
@@ -368,7 +368,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Replace patient program timeline step",
+    label: "Remplacer un jalon chronologique (PUT)",
     method: "PUT",
     route: "/patients/pt-1/programs/Sein/timeline/step-1",
     body: JSON.stringify(
@@ -384,7 +384,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Patch patient program timeline step",
+    label: "Modifier un jalon chronologique (PATCH)",
     method: "PATCH",
     route: "/patients/pt-1/programs/Sein/timeline/step-1",
     body: JSON.stringify(
@@ -396,9 +396,9 @@ const ROUTE_PRESETS: RoutePreset[] = [
       2,
     ),
   },
-  { label: "Delete patient program timeline step", method: "DELETE", route: "/patients/pt-1/programs/Sein/timeline/step-1", body: "" },
+  { label: "Supprimer un jalon chronologique", method: "DELETE", route: "/patients/pt-1/programs/Sein/timeline/step-1", body: "" },
   {
-    label: "Create patient",
+    label: "Créer un nouveau patient",
     method: "POST",
     route: "/patients",
     body: JSON.stringify(
@@ -415,7 +415,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Replace patient",
+    label: "Remplacer un patient (PUT)",
     method: "PUT",
     route: "/patients/pt-1",
     body: JSON.stringify(
@@ -430,7 +430,7 @@ const ROUTE_PRESETS: RoutePreset[] = [
     ),
   },
   {
-    label: "Patch patient",
+    label: "Modifier un patient (PATCH)",
     method: "PATCH",
     route: "/patients/pt-1",
     body: JSON.stringify(
@@ -442,11 +442,11 @@ const ROUTE_PRESETS: RoutePreset[] = [
       2,
     ),
   },
-  { label: "Delete patient", method: "DELETE", route: "/patients/pt-api-demo", body: "" },
-  { label: "Get practitioners collection", method: "GET", route: "/practitioners", body: "" },
-  { label: "Get practitioner by ID", method: "GET", route: "/practitioners/pr-1", body: "" },
-  { label: "Get messages collection", method: "GET", route: "/messages", body: "" },
-  { label: "Get message by ID", method: "GET", route: "/messages/msg-1", body: "" },
+  { label: "Supprimer un patient", method: "DELETE", route: "/patients/pt-api-demo", body: "" },
+  { label: "Consulter la collection des praticiens", method: "GET", route: "/practitioners", body: "" },
+  { label: "Consulter un praticien par identifiant", method: "GET", route: "/practitioners/pr-1", body: "" },
+  { label: "Consulter la collection des messages", method: "GET", route: "/messages", body: "" },
+  { label: "Consulter un message par identifiant", method: "GET", route: "/messages/msg-1", body: "" },
 ];
 
 function formatJson(value: unknown) {

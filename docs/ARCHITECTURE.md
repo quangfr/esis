@@ -325,6 +325,23 @@ L'application émule un backend Firestore sans nécessiter de serveur distant vi
 4. **Client Fake Firestore** ([fake-firestore.ts](file:///c:/Users/Quang/Documents/GitHub/esis/src/app/lib/fake-firestore.ts)) : Routage des requêtes REST-like virtuelles (`GET /bootstrap`, `POST /patients/:id`, etc.).
 5. **Storage Moteur** : IndexedDB (`esis-fake-firestore`) & fallback vers seed initial ([demo-data.json](file:///c:/Users/Quang/Documents/GitHub/esis/src/app/data/demo-data.json)).
 
+### 4.3. Stratégie de Génération des Données (Auto-Seed & Datasets)
+
+Pour assurer une démonstration interactive fiable et déterministe sans dépendance à une API distante :
+
+1. **Jeu de données de référence (Seed statique)** :
+   - Fichier maître [`src/app/data/demo-data.json`](file:///c:/Users/Quang/Documents/GitHub/esis/src/app/data/demo-data.json) contenant les collections complètes.
+   - Typage TypeScript strict et fonction de clonage immuable [`createDemoDataBundle()`](file:///c:/Users/Quang/Documents/GitHub/esis/src/app/data/demo-data.ts).
+2. **Amorçage automatique (Auto-seeding)** :
+   - Au premier chargement (`GET /bootstrap`), si la base IndexedDB est vide, le faux backend Firestore injecte automatiquement le bundle racine dans les object stores (`patients`, `practitioners`, `messages`, `app_metadata`).
+3. **Dérivation automatique des vues métiers (Patients, Dossiers, Examens)** :
+   - **Patients** : Collection pivot matérialisant l'identité civile, NIR, antécédents, constantes biométriques et statuts de dépistage.
+   - **Dossiers** : Dénormalisés dynamiquement par assemblage des `enrollments`, `episodes` et `tasks` rattachés au patient.
+   - **Examens** : Extraits automatiquement des `programs` et `documents` médicaux (mammographies bilatérales, tests FIT colorectaux, tests HPV-HR) avec leurs conclusions sémiologiques standardisées (ACR 1 à 5).
+4. **Persistance des mutations & Réinitialisation** :
+   - Toute création ou modification via l'interface ou l'onglet API est immédiatement persistée dans IndexedDB.
+   - La réinitialisation par `POST /seed` (disponible via le bouton *Reset* ou l'onglet API) réinstancie l'état d'origine sans corrompre le schéma.
+
 ---
 
 ## 5. Diagrammes des Flux Fonctionnels & UML Mermaid

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   BookOpen,
   Boxes,
@@ -13,7 +13,13 @@ import {
   Check,
   ChevronRight,
   Table as TableIcon,
+  TableProperties,
+  User,
+  FolderOpen,
+  Stethoscope,
 } from "lucide-react";
+import { UmlViewer } from "./uml-viewer";
+import { demoDataBundle, type Patient } from "../data/demo-data";
 
 interface FieldDef {
   name: string;
@@ -294,7 +300,77 @@ const DATA_DICTIONARY: Record<string, ObjectDef> = {
 export function DocumentationPage() {
   const [activeTab, setActiveTab] = useState<"functional" | "dictionary" | "data" | "flows" | "raw">("dictionary");
   const [selectedEntity, setSelectedEntity] = useState<string>("Patient");
+  const [sampleSubTab, setSampleSubTab] = useState<"patients" | "dossiers" | "examens">("patients");
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
+
+  const samplePatients: Patient[] = useMemo(() => {
+    return demoDataBundle.patients.slice(0, 10);
+  }, []);
+
+  const sampleDossiers = useMemo(() => {
+    return samplePatients.map((patient, index) => {
+      const episode = patient.episodes[0] || {
+        id: `ep-gen-${index + 1}`,
+        type: patient.typeDepistage,
+        statut: patient.statut === "Invité" ? "Kit envoyé" : "Examen planifié",
+        dateOuverture: patient.derniereVisite || "15/01/2026",
+        prochaineEtape: patient.situationCourante || "Consultation de contrôle",
+      };
+      const enrollment = patient.enrollments[0] || {
+        canal: patient.canalPrefere === "SMS" ? "Portail" : "Campagne",
+        statut: "Validé",
+        date: patient.derniereVisite || "10/01/2026",
+        consentement: true,
+      };
+
+      return {
+        dossierId: `DOS-2026-${String(index + 1).padStart(4, "0")}`,
+        patientId: patient.id,
+        patientNom: `${patient.nom} ${patient.prenom}`,
+        nir: patient.nir,
+        typeDepistage: patient.typeDepistage,
+        statutDossier: enrollment.statut,
+        canalEntree: enrollment.canal,
+        consentement: enrollment.consentement ? "Validé" : "Non recueilli",
+        medecinTraitant: patient.medecinTraitant,
+        dateCreation: episode.dateOuverture,
+        prochaineEcheance: patient.prochainRappel,
+        progression: `${patient.progression}%`,
+      };
+    });
+  }, [samplePatients]);
+
+  const sampleExamens = useMemo(() => {
+    return samplePatients.map((patient, index) => {
+      const program = patient.programs[0];
+      const doc = program?.documents?.[0] || {
+        id: `DOC-RAD-${100 + index}`,
+        titre: `Compte-rendu dépistage ${patient.typeDepistage}`,
+        date: patient.derniereVisite,
+        statut: "Disponible",
+        indicateur: patient.typeDepistage === "Sein" ? "ACR 2" : "Négatif (Normal)",
+        auteur: patient.medecinTraitant,
+      };
+      const examenPropose = program?.examensProposes?.[0] || {
+        nom: patient.typeDepistage === "Sein" ? "Mammographie bilatérale numérique" : patient.typeDepistage === "Colorectal" ? "Test FIT immunologique" : "Test HPV-HR haute sensibilité",
+        resultat: doc.indicateur,
+      };
+
+      return {
+        examenId: `EXAM-${String(202600 + index + 1)}`,
+        patientId: patient.id,
+        patientNom: `${patient.nom} ${patient.prenom}`,
+        typeExamen: examenPropose.nom,
+        organeCible: patient.typeDepistage,
+        dateExamen: doc.date || patient.derniereVisite,
+        praticienAuteur: doc.auteur || patient.medecinTraitant,
+        centreExamen: patient.centre,
+        resultatSynthétique: doc.indicateur,
+        statutExamen: doc.statut,
+        prochainControle: program?.prochainExamen || patient.prochainRappel,
+      };
+    });
+  }, [samplePatients]);
 
   const handleCopy = (text: string, sectionId: string) => {
     navigator.clipboard.writeText(text);
@@ -331,7 +407,7 @@ export function DocumentationPage() {
             }`}
           >
             <TableIcon className="w-4 h-4" />
-            1. Dictionnaire des Données
+            1. Dictionnaire
           </button>
           <button
             onClick={() => setActiveTab("functional")}
@@ -342,7 +418,7 @@ export function DocumentationPage() {
             }`}
           >
             <Layers className="w-4 h-4" />
-            2. Périmètre & Rôles
+            2. Périmètre
           </button>
           <button
             onClick={() => setActiveTab("data")}
@@ -352,8 +428,8 @@ export function DocumentationPage() {
                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
             }`}
           >
-            <Database className="w-4 h-4" />
-            3. Stockage IndexedDB
+            <TableProperties className="w-4 h-4" />
+            3. Tableaux
           </button>
           <button
             onClick={() => setActiveTab("flows")}
@@ -364,7 +440,7 @@ export function DocumentationPage() {
             }`}
           >
             <Workflow className="w-4 h-4" />
-            4. Diagrammes & Flux UML
+            4. Diagrammes UML
           </button>
           <button
             onClick={() => setActiveTab("raw")}
@@ -375,7 +451,7 @@ export function DocumentationPage() {
             }`}
           >
             <FileCode className="w-4 h-4" />
-            5. Markdown Brut (docs/ARCHITECTURE.md)
+            5. Markdown
           </button>
         </div>
       </div>
@@ -597,251 +673,227 @@ export function DocumentationPage() {
         </div>
       )}
 
-      {/* Tab Content: Storage Architecture */}
+      {/* Tab Content: Tables de Données Automatiques */}
       {activeTab === "data" && (
         <div className="space-y-6">
           <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-xs">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
-              <Database className="w-5 h-5 text-blue-600" />
-              Stockage Runtime & API Virtuelle (Fake Firestore)
-            </h2>
-            <p className="text-sm text-gray-600 mb-4">
-              L'application fonctionne en totale autonomie côté navigateur grâce à une persistance locale s'appuyant
-              sur l'API <strong>IndexedDB</strong> (<code className="px-1.5 py-0.5 bg-gray-100 text-gray-800 rounded text-xs font-mono">esis-fake-firestore</code> v1),
-              mimant fidèlement le comportement asynchrone d'une API Cloud Firestore.
-            </p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <TableProperties className="w-5 h-5 text-blue-600" />
+                  Tableaux d'Exemples de Données Générés Automatiquement
+                </h2>
+                <p className="text-xs text-gray-500 mt-1">
+                  Échantillon déterministe de 10 enregistrements complets généré à partir du modèle de données (colonnes = propriétés, lignes = objets).
+                </p>
+              </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border border-gray-200 rounded-lg overflow-hidden">
-                <thead className="bg-gray-50 border-b border-gray-200 text-gray-700 font-semibold uppercase">
-                  <tr>
-                    <th className="px-4 py-3">Object Store</th>
-                    <th className="px-4 py-3">Clé Primaire</th>
-                    <th className="px-4 py-3">Description Fonctionnelle</th>
-                    <th className="px-4 py-3">Persistance Modifiable</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 text-gray-600">
-                  <tr>
-                    <td className="px-4 py-3 font-mono font-medium text-blue-600">patients</td>
-                    <td className="px-4 py-3 font-mono">id (ex: pt-1)</td>
-                    <td className="px-4 py-3">Dossier patient complet, constantes, antécédents, épisodes et sous-programmes.</td>
-                    <td className="px-4 py-3"><span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">Création / Édition</span></td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-mono font-medium text-blue-600">practitioners</td>
-                    <td className="px-4 py-3 font-mono">id (ex: med-1)</td>
-                    <td className="px-4 py-3">Annuaire des médecins, radiologues, centres de rattachement et disponibilités.</td>
-                    <td className="px-4 py-3"><span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full">Lecture / Patch</span></td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-mono font-medium text-blue-600">messages</td>
-                    <td className="px-4 py-3 font-mono">id (ex: msg-1)</td>
-                    <td className="px-4 py-3">Fils de messages sécurisés (sujet, corps, pièces jointes, destinataire, boîte).</td>
-                    <td className="px-4 py-3"><span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">Envoi / Archivage</span></td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-mono font-medium text-blue-600">app_metadata</td>
-                    <td className="px-4 py-3 font-mono">id ("bootstrap")</td>
-                    <td className="px-4 py-3">Session locale : profils utilisateurs simulés, rôle actif et IDs courants.</td>
-                    <td className="px-4 py-3"><span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">État de session</span></td>
-                  </tr>
-                </tbody>
-              </table>
+              {/* Sub-tabs pills */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSampleSubTab("patients")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                    sampleSubTab === "patients"
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <User className="w-3.5 h-3.5" /> 10 Patients
+                </button>
+                <button
+                  onClick={() => setSampleSubTab("dossiers")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                    sampleSubTab === "dossiers"
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <FolderOpen className="w-3.5 h-3.5" /> 10 Dossiers
+                </button>
+                <button
+                  onClick={() => setSampleSubTab("examens")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                    sampleSubTab === "examens"
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <Stethoscope className="w-3.5 h-3.5" /> 10 Examens
+                </button>
+              </div>
             </div>
+
+            {/* Table 1: Patients */}
+            {sampleSubTab === "patients" && (
+              <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                <table className="w-full text-left text-xs text-gray-700">
+                  <thead className="bg-gray-100 border-b border-gray-200 text-gray-800 font-semibold uppercase tracking-wider text-[11px]">
+                    <tr>
+                      <th className="px-3 py-3 font-mono">id</th>
+                      <th className="px-3 py-3">Identité</th>
+                      <th className="px-3 py-3">Date Naiss.</th>
+                      <th className="px-3 py-3 font-mono">NIR</th>
+                      <th className="px-3 py-3">Dépistage</th>
+                      <th className="px-3 py-3">Statut</th>
+                      <th className="px-3 py-3">Risque</th>
+                      <th className="px-3 py-3">Progression</th>
+                      <th className="px-3 py-3">Médecin Traitant</th>
+                      <th className="px-3 py-3">Centre / Ville</th>
+                      <th className="px-3 py-3">Contact</th>
+                      <th className="px-3 py-3">Dernière Visite</th>
+                      <th className="px-3 py-3">Prochain Rappel</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {samplePatients.map((p) => (
+                      <tr key={p.id} className="hover:bg-blue-50/40 transition-colors">
+                        <td className="px-3 py-2.5 font-mono font-medium text-blue-600 whitespace-nowrap">{p.id}</td>
+                        <td className="px-3 py-2.5 font-medium text-gray-900 whitespace-nowrap">{p.nom} {p.prenom}</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">{p.dateNaissance}</td>
+                        <td className="px-3 py-2.5 font-mono text-[11px] text-gray-600 whitespace-nowrap">{p.nir}</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-pink-100 text-pink-700">
+                            {p.typeDepistage}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded-full font-medium text-[11px] bg-amber-100 text-amber-800">
+                            {p.statut}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">
+                          <span className={`px-2 py-0.5 rounded text-[11px] font-medium ${
+                            p.risque === "Prioritaire" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+                          }`}>
+                            {p.risque}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 whitespace-nowrap font-mono">{p.progression}%</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">{p.medecinTraitant}</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap text-gray-600">{p.centre} ({p.ville})</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap text-[11px]">{p.telephone}</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">{p.derniereVisite}</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap text-blue-600 font-medium">{p.prochainRappel}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Table 2: Dossiers */}
+            {sampleSubTab === "dossiers" && (
+              <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                <table className="w-full text-left text-xs text-gray-700">
+                  <thead className="bg-gray-100 border-b border-gray-200 text-gray-800 font-semibold uppercase tracking-wider text-[11px]">
+                    <tr>
+                      <th className="px-3 py-3 font-mono">Dossier ID</th>
+                      <th className="px-3 py-3 font-mono">Patient ID</th>
+                      <th className="px-3 py-3">Usager</th>
+                      <th className="px-3 py-3 font-mono">NIR</th>
+                      <th className="px-3 py-3">Programme Cible</th>
+                      <th className="px-3 py-3">Statut Dossier</th>
+                      <th className="px-3 py-3">Canal Entrée</th>
+                      <th className="px-3 py-3">Consentement</th>
+                      <th className="px-3 py-3">Ouverture</th>
+                      <th className="px-3 py-3">Prochaine Échéance</th>
+                      <th className="px-3 py-3">Avancement</th>
+                      <th className="px-3 py-3">Médecin Référent</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {sampleDossiers.map((d) => (
+                      <tr key={d.dossierId} className="hover:bg-blue-50/40 transition-colors">
+                        <td className="px-3 py-2.5 font-mono font-medium text-indigo-700 whitespace-nowrap">{d.dossierId}</td>
+                        <td className="px-3 py-2.5 font-mono text-gray-600 whitespace-nowrap">{d.patientId}</td>
+                        <td className="px-3 py-2.5 font-medium text-gray-900 whitespace-nowrap">{d.patientNom}</td>
+                        <td className="px-3 py-2.5 font-mono text-[11px] text-gray-600 whitespace-nowrap">{d.nir}</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-blue-100 text-blue-800">
+                            {d.typeDepistage}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded-full font-medium text-[11px] bg-green-100 text-green-800">
+                            {d.statutDossier}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 whitespace-nowrap font-mono">{d.canalEntree}</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded text-[11px] bg-teal-50 text-teal-700 border border-teal-200 font-medium">
+                            {d.consentement}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">{d.dateCreation}</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap text-blue-600 font-medium">{d.prochaineEcheance}</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap font-mono">{d.progression}</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">{d.medecinTraitant}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Table 3: Examens */}
+            {sampleSubTab === "examens" && (
+              <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                <table className="w-full text-left text-xs text-gray-700">
+                  <thead className="bg-gray-100 border-b border-gray-200 text-gray-800 font-semibold uppercase tracking-wider text-[11px]">
+                    <tr>
+                      <th className="px-3 py-3 font-mono">Examen ID</th>
+                      <th className="px-3 py-3 font-mono">Patient ID</th>
+                      <th className="px-3 py-3">Usager</th>
+                      <th className="px-3 py-3">Acte Réalisé</th>
+                      <th className="px-3 py-3">Organe</th>
+                      <th className="px-3 py-3">Date Acte</th>
+                      <th className="px-3 py-3">Praticien / Signataire</th>
+                      <th className="px-3 py-3">Centre d'Examen</th>
+                      <th className="px-3 py-3">Résultat Diagnostic</th>
+                      <th className="px-3 py-3">Statut CR</th>
+                      <th className="px-3 py-3">Prochain Contrôle</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {sampleExamens.map((e) => (
+                      <tr key={e.examenId} className="hover:bg-blue-50/40 transition-colors">
+                        <td className="px-3 py-2.5 font-mono font-medium text-emerald-700 whitespace-nowrap">{e.examenId}</td>
+                        <td className="px-3 py-2.5 font-mono text-gray-600 whitespace-nowrap">{e.patientId}</td>
+                        <td className="px-3 py-2.5 font-medium text-gray-900 whitespace-nowrap">{e.patientNom}</td>
+                        <td className="px-3 py-2.5 font-medium text-gray-800 whitespace-nowrap">{e.typeExamen}</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded font-medium text-[11px] bg-purple-100 text-purple-700">
+                            {e.organeCible}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">{e.dateExamen}</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">{e.praticienAuteur}</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap text-gray-600">{e.centreExamen}</td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded font-mono font-semibold text-[11px] bg-emerald-100 text-emerald-800">
+                            {e.resultatSynthétique}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded text-[11px] bg-gray-100 text-gray-700 font-medium">
+                            {e.statutExamen}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2.5 whitespace-nowrap text-blue-600 font-medium">{e.prochainControle}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* Tab Content: UML Mermaid Diagrams */}
+      {/* Tab Content: Diagrammes UML (Viewer Interactif) */}
       {activeTab === "flows" && (
         <div className="space-y-6">
-          {/* Cycle de Vie */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-xs">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-2">
-              <Workflow className="w-5 h-5 text-blue-600" />
-              1. Cycle de Vie Fonctionnel d'un Dépistage (State Flow)
-            </h2>
-            <p className="text-xs text-gray-500 mb-4">
-              Parcours type d'un patient au travers des différentes étapes d'une campagne de dépistage.
-            </p>
-
-            <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl">
-              <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-medium text-gray-700">
-                <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-gray-200 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-slate-400"></span>
-                  1. Éligible (Cohorte)
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-                <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-gray-200 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                  2. En attente (Enrôlement)
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-                <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-gray-200 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                  3. Invité (Courrier / Kit)
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-                <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-gray-200 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-                  4. Examen Réalisé
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-                <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-gray-200 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-teal-500"></span>
-                  5. Résultats Disponibles
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-                <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-gray-200 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-green-600"></span>
-                  6. Suivi / Clôture
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Séquence : Initialisation / Bootstrap */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-xs">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <GitBranch className="w-5 h-5 text-blue-600" />
-                  2. Séquence : Initialisation & Hydratation de l'Application
-                </h2>
-                <p className="text-xs text-gray-500">
-                  Mécanisme d'auto-seed et synchronisation entre IndexedDB et le Context React.
-                </p>
-              </div>
-              <button
-                onClick={() =>
-                  handleCopy(
-                    `sequenceDiagram
-    autonumber
-    actor User as Utilisateur
-    participant UI as React UI (App)
-    participant Provider as AppStateProvider
-    participant Remote as Remote Data Layer
-    participant FakeFS as Fake Firestore
-    participant IDB as IndexedDB
-    participant Seed as Demo Data JSON
-
-    User->>UI: Ouvre la plateforme ESIS
-    UI->>Provider: Initialisation (Mount)
-    Provider->>Remote: loadAppData()
-    Remote->>FakeFS: fakeFirestoreRequest("GET /bootstrap")
-    FakeFS->>IDB: Lecture 'app_metadata/bootstrap'
-    alt IndexedDB vide
-        FakeFS->>Seed: Lecture createDemoDataBundle()
-        FakeFS->>IDB: Ecriture stores
-    else Données présentes
-        IDB-->>FakeFS: Restitution des collections
-    end
-    FakeFS-->>Remote: Response 200 OK
-    Remote-->>Provider: Données hydratées
-    Provider->>UI: State à jour (isLoading = false)`,
-                    "seq-init",
-                  )
-                }
-                className="text-xs px-2.5 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-1.5 text-gray-600"
-              >
-                {copiedSection === "seq-init" ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
-                {copiedSection === "seq-init" ? "Copié !" : "Copier le code Mermaid"}
-              </button>
-            </div>
-
-            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
-              <pre>{`sequenceDiagram
-    autonumber
-    actor User as Utilisateur
-    participant UI as React UI (App)
-    participant Provider as AppStateProvider
-    participant Remote as Remote Data Layer
-    participant FakeFS as Fake Firestore (API Engine)
-    participant IDB as IndexedDB (esis-fake-firestore)
-    participant Seed as Demo Data JSON
-
-    User->>UI: Ouvre la plateforme ESIS
-    UI->>Provider: Initialisation (Mount)
-    Provider->>Remote: loadAppData()
-    Remote->>FakeFS: fakeFirestoreRequest("GET /bootstrap")
-    FakeFS->>IDB: Lecture 'app_metadata/bootstrap'
-    alt IndexedDB est vide ou non initialisé
-        FakeFS->>Seed: Lecture createDemoDataBundle()
-        FakeFS->>IDB: Ecriture stores (patients, practitioners, messages, metadata)
-        IDB-->>FakeFS: Confirmation écriture seed
-    else Données existantes dans IndexedDB
-        IDB-->>FakeFS: Restitution des collections sauvegardées
-    end
-    FakeFS-->>Remote: Response 200 OK (DemoDataBundle)
-    Remote-->>Provider: Données hydratées
-    Provider->>UI: Mise à jour du State global & Fin de chargement (isLoading = false)
-    UI-->>User: Affichage du Tableau de Bord`}</pre>
-            </div>
-          </div>
-
-          {/* Séquence : Enrôlement Patient */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-xs">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <GitBranch className="w-5 h-5 text-blue-600" />
-                  3. Séquence : Création & Enrôlement d'un Patient
-                </h2>
-                <p className="text-xs text-gray-500">
-                  Flux transactionnel lors de la création d'un dossier patient par le gestionnaire.
-                </p>
-              </div>
-              <button
-                onClick={() =>
-                  handleCopy(
-                    `sequenceDiagram
-    autonumber
-    actor Manager as Gestionnaire
-    participant PatientsUI as PatientsPage
-    participant Provider as AppStateProvider
-    participant FakeFS as Fake Firestore
-    participant IDB as IndexedDB
-
-    Manager->>PatientsUI: Renseigne le formulaire & clique sur "Créer le patient"
-    PatientsUI->>Provider: createPatient(nouveauPatient)
-    Provider->>FakeFS: createPatientInFakeFirestore(nouveauPatient)
-    FakeFS->>IDB: put("patients", nouveauPatient)
-    IDB-->>FakeFS: Succès transaction
-    FakeFS-->>Provider: Résolution Promise (OK)
-    Provider->>Provider: Met à jour patients[] en mémoire & activePatientId
-    Provider-->>PatientsUI: Re-render avec le nouveau patient actif
-    PatientsUI-->>Manager: Feedback visuel & affichage du dossier créé`,
-                    "seq-enrol",
-                  )
-                }
-                className="text-xs px-2.5 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-1.5 text-gray-600"
-              >
-                {copiedSection === "seq-enrol" ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
-                {copiedSection === "seq-enrol" ? "Copié !" : "Copier le code Mermaid"}
-              </button>
-            </div>
-
-            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-xs overflow-x-auto">
-              <pre>{`sequenceDiagram
-    autonumber
-    actor Manager as Gestionnaire
-    participant PatientsUI as PatientsPage
-    participant Provider as AppStateProvider
-    participant FakeFS as Fake Firestore
-    participant IDB as IndexedDB
-
-    Manager->>PatientsUI: Renseigne le formulaire & clique sur "Créer le patient"
-    PatientsUI->>Provider: createPatient(nouveauPatient)
-    Provider->>FakeFS: createPatientInFakeFirestore(nouveauPatient)
-    FakeFS->>IDB: put("patients", nouveauPatient)
-    IDB-->>FakeFS: Succès transaction
-    FakeFS-->>Provider: Résolution Promise (OK)
-    Provider->>Provider: Met à jour patients[] en mémoire & activePatientId
-    Provider-->>PatientsUI: Re-render avec le nouveau patient actif
-    PatientsUI-->>Manager: Feedback visuel & affichage du dossier créé`}</pre>
-            </div>
-          </div>
+          <UmlViewer />
         </div>
       )}
 
