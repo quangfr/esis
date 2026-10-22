@@ -101,6 +101,16 @@ For reports:
 - comparisons must make the default benchmark obvious
 - charts should answer one question each
 
+## Déploiement & Push GitHub
+
+Lorsque l'utilisateur demande de déployer :
+1. Vérifier l'état du dépôt (`git status -s`).
+2. Si des modifications pertinentes sont en attente, les indexer et créer un commit clair et ciblé.
+3. Déclencher automatiquement le push sur GitHub :
+   - Exécuter la commande `git push origin main` (en utilisant le binaire git configuré).
+   - En cas de blocage d'authentification interactive en arrière-plan, signaler l'état des commits prêts et inviter au clic de synchronisation.
+4. Confirmer à l'utilisateur les commits déployés et l'état de synchronisation avec `origin/main`.
+
 ## Validation Output
 
 When reporting completion:
@@ -113,3 +123,4 @@ When reporting completion:
 Do not stage or commit unrelated files unless the user explicitly asks for all local changes.
 
 Ignore local logs and incidental workspace files unless the task is about them.
+
