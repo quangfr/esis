@@ -28,9 +28,9 @@ const SCHEMA_MERMAID_CODE = `classDiagram
         +string risque
         +string praticienId [FK]
         +Episode[] episodes
-        +Task[] tasks
-        +Enrollment[] enrollments
-        +ScreeningProgram[] programs
+        +Tache[] tasks
+        +Enrolement[] enrollments
+        +ProgrammeDepistage[] programs
     }
 
     class Episode {
@@ -41,7 +41,7 @@ const SCHEMA_MERMAID_CODE = `classDiagram
         +string prochaineEtape
     }
 
-    class Task {
+    class Tache {
         +string id [PK]
         +string titre
         +string echeance
@@ -50,7 +50,7 @@ const SCHEMA_MERMAID_CODE = `classDiagram
         +string assigneA [FK]
     }
 
-    class Enrollment {
+    class Enrolement {
         +string id [PK]
         +string canal
         +string statut
@@ -58,13 +58,13 @@ const SCHEMA_MERMAID_CODE = `classDiagram
         +boolean consentement
     }
 
-    class ScreeningProgram {
+    class ProgrammeDepistage {
         +string type [PK]
         +string niveauRisque
         +string resultatCle
         +string prochainExamen
         +CareTimelineStep[] parcours
-        +ScreeningDocument[] documents
+        +DocumentMedical[] documents
     }
 
     class CareTimelineStep {
@@ -75,7 +75,7 @@ const SCHEMA_MERMAID_CODE = `classDiagram
         +string detail
     }
 
-    class ScreeningDocument {
+    class DocumentMedical {
         +string id [PK]
         +string titre
         +string type
@@ -85,7 +85,7 @@ const SCHEMA_MERMAID_CODE = `classDiagram
         +string auteur [FK]
     }
 
-    class Practitioner {
+    class Praticien {
         +string id [PK]
         +string nom
         +string prenom
@@ -95,7 +95,7 @@ const SCHEMA_MERMAID_CODE = `classDiagram
         +string charge
     }
 
-    class MessageThread {
+    class FilDiscussion {
         +string id [PK]
         +string sujet
         +string expediteur
@@ -106,15 +106,15 @@ const SCHEMA_MERMAID_CODE = `classDiagram
     }
 
     Patient "1" *-- "0..*" Episode : contient
-    Patient "1" *-- "0..*" Task : possède
-    Patient "1" *-- "0..*" Enrollment : trace
-    Patient "1" *-- "0..*" ScreeningProgram : suit
-    ScreeningProgram "1" *-- "0..*" CareTimelineStep : jalonne
-    ScreeningProgram "1" *-- "0..*" ScreeningDocument : intègre
-    Practitioner "1" --> "0..*" Patient : suit
-    Practitioner "1" --> "0..*" ScreeningDocument : signe
-    MessageThread ..> Patient : notifie
-    MessageThread ..> Practitioner : informe`;
+    Patient "1" *-- "0..*" Tache : possède
+    Patient "1" *-- "0..*" Enrolement : trace
+    Patient "1" *-- "0..*" ProgrammeDepistage : suit
+    ProgrammeDepistage "1" *-- "0..*" CareTimelineStep : jalonne
+    ProgrammeDepistage "1" *-- "0..*" DocumentMedical : intègre
+    Praticien "1" --> "0..*" Patient : suit
+    Praticien "1" --> "0..*" DocumentMedical : signe
+    FilDiscussion ..> Patient : notifie
+    FilDiscussion ..> Praticien : informe`;
 
 const PATIENT_JOURNEY_MERMAID_CODE = `sequenceDiagram
     autonumber
@@ -135,6 +135,18 @@ const PATIENT_JOURNEY_MERMAID_CODE = `sequenceDiagram
         C->>M: Alerte prioritaire & déclenchement bilan diagnostique
     end`;
 
+const CYCLE_VIE_MERMAID_CODE = `stateDiagram-v2
+    [*] --> Eligible: Identification cohorte / Age / NIR
+    Eligible --> EnAttente: Enrôlement saisi (Portail / Campagne)
+    EnAttente --> Invite: Envoi invitation / kit de dépistage
+    Invite --> ExamenPlanifie: Prise de RDV / Réception kit
+    ExamenPlanifie --> ExamenRealise: Examen réalisé chez le praticien
+    ExamenRealise --> ResultatsDisponibles: Transmission & double lecture
+    ResultatsDisponibles --> SuiviStandard: Résultat normal (Rappel à 2 ans)
+    ResultatsDisponibles --> SurveillanceRapprochee: Anomalie / Avis spécialisé
+    SuiviStandard --> [*]
+    SurveillanceRapprochee --> [*]`;
+
 declare global {
   interface Window {
     mermaid?: {
@@ -145,7 +157,7 @@ declare global {
 }
 
 export function UmlViewer() {
-  const [activeDiagram, setActiveDiagram] = useState<"schema" | "flow">("schema");
+  const [activeDiagram, setActiveDiagram] = useState<"schema" | "flow" | "lifecycle">("schema");
   const [viewMode, setViewMode] = useState<"rendered" | "code">("rendered");
   const [zoom, setZoom] = useState(1);
   const [svgContent, setSvgContent] = useState<string>("");
@@ -154,7 +166,12 @@ export function UmlViewer() {
   const [copied, setCopied] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const currentMermaidCode = activeDiagram === "schema" ? SCHEMA_MERMAID_CODE : PATIENT_JOURNEY_MERMAID_CODE;
+  const currentMermaidCode =
+    activeDiagram === "schema"
+      ? SCHEMA_MERMAID_CODE
+      : activeDiagram === "flow"
+      ? PATIENT_JOURNEY_MERMAID_CODE
+      : CYCLE_VIE_MERMAID_CODE;
 
   // Dynamically load Mermaid library from CDN if not already on window
   useEffect(() => {
@@ -215,21 +232,23 @@ export function UmlViewer() {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden flex flex-col">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden flex flex-col flex-1 h-[calc(100vh-165px)] min-h-[580px]">
       {/* Top Toolbar */}
-      <div className="px-4 py-2.5 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-800 shrink-0">
+      <div className="px-4 py-2 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 shrink-0">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse"></span>
           <span className="font-semibold text-xs tracking-tight">Mermaid Viewer</span>
           <span className="text-[11px] text-slate-400 border-l border-slate-700 pl-2">
             {activeDiagram === "schema"
-              ? "Schéma Entités-Relations"
-              : "Flux Parcours Patient"}
+              ? "1. Schéma Entités-Relations"
+              : activeDiagram === "flow"
+              ? "2. Flux Parcours Patient"
+              : "3. Cycle de Vie Dépistage"}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Diagram Selector */}
+          {/* 3 Diagrams Selector */}
           <div className="flex bg-slate-800 p-0.5 rounded-md text-xs font-medium">
             <button
               onClick={() => {
@@ -240,7 +259,7 @@ export function UmlViewer() {
                 activeDiagram === "schema" ? "bg-blue-600 text-white shadow-xs" : "text-slate-300 hover:text-white"
               }`}
             >
-              Schéma Entités-Relations
+              1. Schéma Entités-Relations
             </button>
             <button
               onClick={() => {
@@ -251,7 +270,18 @@ export function UmlViewer() {
                 activeDiagram === "flow" ? "bg-blue-600 text-white shadow-xs" : "text-slate-300 hover:text-white"
               }`}
             >
-              Flux Parcours Patient
+              2. Flux Parcours Patient
+            </button>
+            <button
+              onClick={() => {
+                setActiveDiagram("lifecycle");
+                setZoom(1);
+              }}
+              className={`px-2.5 py-1 rounded transition-colors ${
+                activeDiagram === "lifecycle" ? "bg-blue-600 text-white shadow-xs" : "text-slate-300 hover:text-white"
+              }`}
+            >
+              3. Cycle de Vie
             </button>
           </div>
 
@@ -281,7 +311,7 @@ export function UmlViewer() {
           {viewMode === "rendered" && (
             <div className="flex items-center gap-1 bg-slate-800 px-1.5 py-0.5 rounded-md text-slate-300">
               <button
-                onClick={() => setZoom((z) => Math.max(0.6, z - 0.1))}
+                onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))}
                 className="p-1 hover:text-white"
                 title="Dézoomer"
               >
@@ -289,7 +319,7 @@ export function UmlViewer() {
               </button>
               <span className="text-[11px] font-mono w-9 text-center">{Math.round(zoom * 100)}%</span>
               <button
-                onClick={() => setZoom((z) => Math.min(1.6, z + 0.1))}
+                onClick={() => setZoom((z) => Math.min(1.8, z + 0.1))}
                 className="p-1 hover:text-white"
                 title="Zoomer"
               >
@@ -317,11 +347,11 @@ export function UmlViewer() {
         </div>
       </div>
 
-      {/* RENDERED MERMAID VIEWER (Full height, no scroll container) */}
+      {/* RENDERED MERMAID VIEWER (Full height of container, no internal scrollbar) */}
       {viewMode === "rendered" && (
-        <div className="p-4 sm:p-6 bg-slate-50 flex items-center justify-center overflow-visible">
+        <div className="p-4 bg-slate-50 flex-1 flex items-center justify-center overflow-hidden">
           {isLoading && (
-            <div className="flex items-center gap-2 text-xs text-slate-600 py-12">
+            <div className="flex items-center gap-2 text-xs text-slate-600">
               <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
               Génération du diagramme vectoriel...
             </div>
@@ -330,19 +360,19 @@ export function UmlViewer() {
           {!isLoading && !hasError && svgContent && (
             <div
               ref={containerRef}
-              className="w-full flex justify-center transition-transform origin-top duration-150 [&>svg]:w-full [&>svg]:h-auto [&>svg]:max-w-none"
-              style={{ transform: `scale(${zoom})`, transformOrigin: "top center" }}
+              className="w-full h-full flex items-center justify-center transition-transform origin-center duration-150 [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:w-auto [&>svg]:h-auto"
+              style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}
               dangerouslySetInnerHTML={{ __html: svgContent }}
             />
           )}
 
           {!isLoading && hasError && (
-            <div className="w-full text-center py-4">
+            <div className="w-full h-full flex items-center justify-center p-2">
               <img
                 src={`https://mermaid.ink/svg/${btoa(unescape(encodeURIComponent(currentMermaidCode)))}`}
                 alt="Mermaid Diagram"
-                className="mx-auto max-w-full rounded-lg shadow-sm border border-gray-200"
-                style={{ transform: `scale(${zoom})`, transformOrigin: "top center" }}
+                className="max-w-full max-h-full object-contain rounded-lg shadow-sm border border-gray-200"
+                style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}
               />
             </div>
           )}
@@ -351,7 +381,7 @@ export function UmlViewer() {
 
       {/* CODE SOURCE VIEW */}
       {viewMode === "code" && (
-        <div className="p-4 bg-slate-950 text-slate-100">
+        <div className="p-4 bg-slate-950 text-slate-100 flex-1 overflow-auto">
           <pre className="p-4 bg-slate-900 border border-slate-800 rounded-lg font-mono text-xs overflow-x-auto leading-relaxed text-cyan-300">
             {currentMermaidCode}
           </pre>

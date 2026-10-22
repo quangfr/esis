@@ -45,12 +45,12 @@ classDiagram
         +string email
         +number progression
         +Episode[] episodes
-        +Task[] tasks
-        +Enrollment[] enrollments
-        +ScreeningProgram[] programs
+        +Tache[] tasks
+        +Enrolement[] enrollments
+        +ProgrammeDepistage[] programs
     }
 
-    class Practitioner {
+    class Praticien {
         +string id
         +string nom
         +string prenom
@@ -70,7 +70,7 @@ classDiagram
         +string prochaineEtape
     }
 
-    class Enrollment {
+    class Enrolement {
         +string id
         +string canal
         +string statut
@@ -78,7 +78,7 @@ classDiagram
         +boolean consentement
     }
 
-    class Task {
+    class Tache {
         +string id
         +string titre
         +string echeance
@@ -87,14 +87,14 @@ classDiagram
         +string assigneA
     }
 
-    class ScreeningProgram {
+    class ProgrammeDepistage {
         +string type
         +string niveauRisque
         +string tendanceRegionale
         +string resultatCle
         +string prochainExamen
         +CareTimelineStep[] parcours
-        +ScreeningDocument[] documents
+        +DocumentMedical[] documents
     }
 
     class CareTimelineStep {
@@ -105,7 +105,7 @@ classDiagram
         +string detail
     }
 
-    class ScreeningDocument {
+    class DocumentMedical {
         +string id
         +string titre
         +string type
@@ -114,7 +114,7 @@ classDiagram
         +string auteur
     }
 
-    class MessageThread {
+    class FilDiscussion {
         +string id
         +string sujet
         +string expediteur
@@ -128,14 +128,14 @@ classDiagram
     }
 
     Patient "1" --> "0..*" Episode : contient
-    Patient "1" --> "0..*" Task : possède
-    Patient "1" --> "0..*" Enrollment : trace
-    Patient "1" --> "0..*" ScreeningProgram : suit
-    Patient "0..*" --> "1" Practitioner : est suivi par
-    ScreeningProgram "1" --> "0..*" CareTimelineStep : étapes
-    ScreeningProgram "1" --> "0..*" ScreeningDocument : documents
-    MessageThread ..> Patient : peut concerner
-    MessageThread ..> Practitioner : expédié / reçu
+    Patient "1" --> "0..*" Tache : possède
+    Patient "1" --> "0..*" Enrolement : trace
+    Patient "1" --> "0..*" ProgrammeDepistage : suit
+    Patient "0..*" --> "1" Praticien : est suivi par
+    ProgrammeDepistage "1" --> "0..*" CareTimelineStep : étapes
+    ProgrammeDepistage "1" --> "0..*" DocumentMedical : documents
+    FilDiscussion ..> Patient : peut concerner
+    FilDiscussion ..> Praticien : expédié / reçu
 ```
 
 ---
@@ -179,7 +179,7 @@ Entité centrale représentant l'usager éligible ou enrôlé dans un ou plusieu
 
 ---
 
-### 3.2. Objet `Practitioner`
+### 3.2. Objet `Praticien`
 Professionnel de santé impliqué (médecin traitant, radiologue, gynécologue, gastro-entérologue).
 
 | Nom technique | Type | Exemple | Description / Valeurs autorisées |
@@ -209,7 +209,7 @@ Campagne ou cycle de dépistage daté pour un organe spécifique.
 
 ---
 
-### 3.4. Objet `Enrollment`
+### 3.4. Objet `Enrolement`
 Canal d'entrée et validation du consentement du patient dans la campagne.
 
 | Nom technique | Type | Exemple | Description / Valeurs autorisées |
@@ -222,7 +222,7 @@ Canal d'entrée et validation du consentement du patient dans la campagne.
 
 ---
 
-### 3.5. Objet `Task`
+### 3.5. Objet `Tache`
 Tâche d'action assignée à un membre de l'équipe de coordination ou praticien.
 
 | Nom technique | Type | Exemple | Description / Valeurs autorisées |
@@ -236,7 +236,7 @@ Tâche d'action assignée à un membre de l'équipe de coordination ou praticien
 
 ---
 
-### 3.6. Objet `ScreeningProgram`
+### 3.6. Objet `ProgrammeDepistage`
 Déroulement clinique spécifique pour un programme de dépistage donné.
 
 | Nom technique | Type | Exemple | Description / Valeurs autorisées |
@@ -254,7 +254,7 @@ Déroulement clinique spécifique pour un programme de dépistage donné.
 
 ---
 
-### 3.7. Objet `CareTimelineStep` (Sous-objet de `ScreeningProgram`)
+### 3.7. Objet `CareTimelineStep` (Sous-objet de `ProgrammeDepistage`)
 Étape de la timeline du parcours de soins.
 
 | Nom technique | Type | Exemple | Description / Valeurs autorisées |
@@ -267,7 +267,7 @@ Déroulement clinique spécifique pour un programme de dépistage donné.
 
 ---
 
-### 3.8. Objet `ScreeningDocument`
+### 3.8. Objet `DocumentMedical`
 Document médical ou administratif rattaché au parcours.
 
 | Nom technique | Type | Exemple | Description / Valeurs autorisées |
@@ -283,7 +283,7 @@ Document médical ou administratif rattaché au parcours.
 
 ---
 
-### 3.9. Objet `MessageThread`
+### 3.9. Objet `FilDiscussion`
 Fil de messagerie sécurisée échangé entre les utilisateurs.
 
 | Nom technique | Type | Exemple | Description / Valeurs autorisées |
@@ -366,7 +366,7 @@ sequenceDiagram
     FakeFS->>IDB: Lecture 'app_metadata/bootstrap'
     alt IndexedDB est vide ou non initialisé
         FakeFS->>Seed: Lecture createDemoDataBundle()
-        FakeFS->>IDB: Ecriture stores (patients, practitioners, messages, metadata)
+        FakeFS->>IDB: Ecriture stores (patients, praticiens, fil_discussions, metadata)
         IDB-->>FakeFS: Confirmation écriture seed
     else Données existantes dans IndexedDB
         IDB-->>FakeFS: Restitution des collections sauvegardées

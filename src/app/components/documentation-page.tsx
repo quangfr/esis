@@ -93,13 +93,13 @@ const DATA_DICTIONARY: Record<string, ObjectDef> = {
       { name: "constantes", type: "object", example: '{ imc: "22.4", tension: "12/8", ... }', description: "Biométrie : IMC, tension artérielle, fréquence cardiaque, saturation O2." },
       { name: "situationCourante", type: "string", example: '"En attente de mammographie T2"', description: "Résumé synthétique pour la fiche de prise en charge." },
       { name: "episodes", type: "Episode[]", example: "[...]", description: "Sous-collection des épisodes et campagnes passées/en cours." },
-      { name: "tasks", type: "Task[]", example: "[...]", description: "Tâches d'action et relances assignées à la coordination." },
-      { name: "enrollments", type: "Enrollment[]", example: "[...]", description: "Historique d'enrôlement et traçabilité des consentements." },
-      { name: "programs", type: "ScreeningProgram[]", example: "[...]", description: "Détail complet du ou des programmes de dépistage suivis." },
+      { name: "tasks", type: "Tache[]", example: "[...]", description: "Tâches d'action et relances assignées à la coordination." },
+      { name: "enrollments", type: "Enrolement[]", example: "[...]", description: "Historique d'enrôlement et traçabilité des consentements." },
+      { name: "programs", type: "ProgrammeDepistage[]", example: "[...]", description: "Détail complet du ou des programmes de dépistage suivis." },
     ],
   },
-  Practitioner: {
-    title: "Practitioner",
+  Praticien: {
+    title: "Praticien",
     description: "Professionnel de santé intervenant (médecin traitant, radiologue, gynécologue, gastro-entérologue).",
     fields: [
       { name: "id", type: "string", example: '"med-1"', description: "Identifiant technique unique du praticien." },
@@ -142,8 +142,8 @@ const DATA_DICTIONARY: Record<string, ObjectDef> = {
       { name: "prochaineEtape", type: "string", example: '"Réalisation mammographie"', description: "Libellé de la prochaine action requise." },
     ],
   },
-  Enrollment: {
-    title: "Enrollment",
+  Enrolement: {
+    title: "Enrolement",
     description: "Canal d'adhésion et recueil du consentement du patient pour la campagne.",
     fields: [
       { name: "id", type: "string", example: '"enr-1"', description: "Identifiant de l'enrôlement." },
@@ -165,8 +165,8 @@ const DATA_DICTIONARY: Record<string, ObjectDef> = {
       { name: "consentement", type: "boolean", example: "true", description: "Indicateur d'acceptation éclairée de l'usager (true / false)." },
     ],
   },
-  Task: {
-    title: "Task",
+  Tache: {
+    title: "Tache",
     description: "Tâche de coordination ou relance opérationnelle.",
     fields: [
       { name: "id", type: "string", example: '"tsk-1"', description: "Identifiant de la tâche." },
@@ -189,8 +189,8 @@ const DATA_DICTIONARY: Record<string, ObjectDef> = {
       { name: "assigneA", type: "string", example: '"Coordination Gironde"', description: "Acteur responsable de la complétion." },
     ],
   },
-  ScreeningProgram: {
-    title: "ScreeningProgram",
+  ProgrammeDepistage: {
+    title: "ProgrammeDepistage",
     description: "Parcours de soins médicalisé propre à un organe de dépistage.",
     fields: [
       {
@@ -214,11 +214,11 @@ const DATA_DICTIONARY: Record<string, ObjectDef> = {
       { name: "parcours", type: "CareTimelineStep[]", example: "[...]", description: "Jalons chronologiques de la timeline de soins." },
       { name: "formulaires", type: "object[]", example: "[...]", description: "Questionnaires (statuts: 'À compléter' | 'Complet' | 'À revoir')." },
       { name: "examensProposes", type: "object[]", example: "[...]", description: "Actes préconisés avec justification clinique." },
-      { name: "documents", type: "ScreeningDocument[]", example: "[...]", description: "Comptes-rendus radiologiques et bilans biologiques." },
+      { name: "documents", type: "DocumentMedical[]", example: "[...]", description: "Comptes-rendus radiologiques et bilans biologiques." },
     ],
   },
-  ScreeningDocument: {
-    title: "ScreeningDocument",
+  DocumentMedical: {
+    title: "DocumentMedical",
     description: "Document médical ou administratif associé au dossier patient.",
     fields: [
       { name: "id", type: "string", example: '"doc-1"', description: "Identifiant du document." },
@@ -243,8 +243,8 @@ const DATA_DICTIONARY: Record<string, ObjectDef> = {
       { name: "auteur", type: "string", example: '"Dr Valérie Martin (Radiologue)"', description: "Médecin signataire ou organisme émetteur." },
     ],
   },
-  MessageThread: {
-    title: "MessageThread",
+  FilDiscussion: {
+    title: "FilDiscussion",
     description: "Fil de discussion sécurisé (messagerie interne inter-acteurs).",
     fields: [
       { name: "id", type: "string", example: '"msg-1"', description: "Identifiant unique du fil de discussion." },
@@ -585,7 +585,7 @@ export function DocumentationPage() {
 
       {/* Tab Content: Diagrammes UML (Viewer Interactif) */}
       {activeTab === "flows" && (
-        <div className="space-y-6">
+        <div className="w-full flex-1 flex flex-col">
           <UmlViewer />
         </div>
       )}
@@ -621,14 +621,14 @@ export function DocumentationPage() {
 
 ## 3. Dictionnaire Détaillé des Propriétés par Objet
 - Patient (28 propriétés typées avec enum exhaustifs)
-- Practitioner (9 propriétés)
+- Praticien (9 propriétés)
 - Episode (5 propriétés)
-- Enrollment (5 propriétés)
-- Task (6 propriétés)
-- ScreeningProgram (10 propriétés)
+- Enrolement (5 propriétés)
+- Tache (6 propriétés)
+- ProgrammeDepistage (10 propriétés)
 - CareTimelineStep (5 propriétés)
-- ScreeningDocument (8 propriétés)
-- MessageThread (13 propriétés)
+- DocumentMedical (8 propriétés)
+- FilDiscussion (13 propriétés)
 
 ## 4. Architecture de Stockage IndexedDB
 - esis-fake-firestore v1 (patients, practitioners, messages, app_metadata)
