@@ -187,6 +187,7 @@ const SCHEMA_MERMAID_CODE = `classDiagram
         +string activePractitionerId
     }
 
+    Patient "1" *-- "1" Constantes : constantes imbriquées
     Patient "1" *-- "0..*" Episode : episodes imbriqués
     Patient "1" *-- "0..*" Task : tasks imbriquées
     Patient "1" *-- "0..*" Enrollment : enrollments imbriqués
