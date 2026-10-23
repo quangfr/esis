@@ -242,7 +242,10 @@ const APP_FLOWS_MERMAID_CODE = `flowchart TB
         Message --> MessageStore["AppStateProvider → fake-firestore"]
         MessageStore --> MessageIDB["Écrit le fil dans IndexedDB (messages)"]
         MessageIDB --> Sent["Actualise l'état et affiche la boîte Envoyés"]
-    end`;
+    end
+
+    Bootstrap ~~~ Patient
+    Patient ~~~ Messaging`;
 
 const PATIENT_JOURNEY_MERMAID_CODE = `sequenceDiagram
     autonumber
