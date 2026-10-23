@@ -62,7 +62,7 @@ const DATA_DICTIONARY: Record<string, ObjectDef> = {
       },
       { name: "derniereVisite", type: "string", example: '"12/01/2026"', description: "Date de la dernière interaction ou examen médical." },
       { name: "prochainRappel", type: "string", example: '"12/01/2028"', description: "Échéance cible pour la prochaine invitation de dépistage." },
-      { name: "praticienId", type: "string", example: '"med-1"', description: "Identifiant du praticien référent rattaché (clé étrangère)." },
+      { name: "praticienId", type: "string", example: '"med-1"', description: "Identifiant applicatif du praticien référent; aucune contrainte de clé étrangère n’est déclarée." },
       { name: "centre", type: "string", example: '"Centre de Radiologie Gambetta"', description: "Établissement ou centre de santé de prise en charge." },
       { name: "ville", type: "string", example: '"Bordeaux"', description: "Commune de résidence." },
       { name: "telephone", type: "string", example: '"06 12 34 56 78"', description: "Numéro de téléphone mobile pour rappels et SMS." },
