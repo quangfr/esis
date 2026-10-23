@@ -18,103 +18,197 @@ const SCHEMA_MERMAID_CODE = `classDiagram
     direction TB
 
     class Patient {
-        +string id [PK]
+        +string id
         +string nom
         +string prenom
         +string dateNaissance
         +string nir
-        +string typeDepistage
-        +string statut
-        +string risque
-        +string praticienId [FK]
+        +ScreeningType typeDepistage
+        +PatientStatus statut
+        +string derniereVisite
+        +string prochainRappel
+        +string praticienId
+        +string centre
+        +string ville
+        +string telephone
+        +string email
+        +PatientRisk risque
+        +ContactChannel canalPrefere
+        +CoverageStatus couverture
+        +number progression
+        +string medecinTraitant
+        +BloodGroup groupeSanguin
+        +string[] allergies
+        +string[] antecedents
+        +string[] traitements
+        +Constantes constantes
+        +string situationCourante
         +Episode[] episodes
-        +Tache[] tasks
-        +Enrolement[] enrollments
-        +ProgrammeDepistage[] programs
+        +Task[] tasks
+        +Enrollment[] enrollments
+        +ScreeningProgram[] programs
     }
 
-    class Episode {
-        +string id [PK]
-        +string type
-        +string statut
-        +string dateOuverture
-        +string prochaineEtape
-    }
-
-    class Tache {
-        +string id [PK]
-        +string titre
-        +string echeance
-        +string priorite
-        +string statut
-        +string assigneA [FK]
-    }
-
-    class Enrolement {
-        +string id [PK]
-        +string canal
-        +string statut
-        +string date
-        +boolean consentement
-    }
-
-    class ProgrammeDepistage {
-        +string type [PK]
-        +string niveauRisque
-        +string resultatCle
-        +string prochainExamen
-        +CareTimelineStep[] parcours
-        +DocumentMedical[] documents
-    }
-
-    class CareTimelineStep {
-        +string id [PK]
-        +string titre
-        +string periode
-        +string statut
-        +string detail
-    }
-
-    class DocumentMedical {
-        +string id [PK]
-        +string titre
-        +string type
-        +string date
-        +string statut
-        +string indicateur
-        +string auteur [FK]
-    }
-
-    class Praticien {
-        +string id [PK]
+    class Practitioner {
+        +string id
         +string nom
         +string prenom
         +string specialite
         +string structure
+        +string ville
         +number patientsActifs
-        +string charge
+        +Workload charge
+        +string disponibilite
     }
 
-    class FilDiscussion {
-        +string id [PK]
+    class Episode {
+        +string id
+        +ScreeningType type
+        +EpisodeStatus statut
+        +string dateOuverture
+        +string prochaineEtape
+    }
+
+    class Task {
+        +string id
+        +string titre
+        +string echeance
+        +Priority priorite
+        +TaskStatus statut
+        +string assigneA
+    }
+
+    class Enrollment {
+        +string id
+        +EnrollmentChannel canal
+        +EnrollmentStatus statut
+        +string date
+        +boolean consentement
+    }
+
+    class ScreeningProgram {
+        +ScreeningType type
+        +ProgramRisk niveauRisque
+        +string tendanceRegionale
+        +string resultatCle
+        +string prochainExamen
+        +string[] historique
+        +CareTimelineStep[] parcours
+        +Questionnaire[] formulaires
+        +ProposedExam[] examensProposes
+        +ScreeningDocument[] documents
+    }
+
+    class CareTimelineStep {
+        +string id
+        +string titre
+        +string periode
+        +TimelineStatus statut
+        +string detail
+    }
+
+    class Questionnaire {
+        +string id
+        +string titre
+        +QuestionnaireStatus statut
+        +string description
+        +string[] champs
+    }
+
+    class ProposedExam {
+        +string nom
+        +string justification
+        +string resultat
+    }
+
+    class ScreeningDocument {
+        +string id
+        +string titre
+        +DocumentType type
+        +string date
+        +DocumentStatus statut
+        +string aperçu
+        +string indicateur
+        +string auteur
+    }
+
+    class Constantes {
+        +string imc
+        +string tension
+        +string frequenceCardiaque
+        +string saturation
+    }
+
+    class MessageThread {
+        +string id
         +string sujet
         +string expediteur
         +string destinataire
-        +string statut
-        +string boite
+        +string aperçu
+        +string contenu
+        +string date
+        +MessageStatus statut
+        +Mailbox boite
         +boolean securise
+        +Importance importance
+        +TargetRole roleCible
+        +Attachment[] piecesJointes
     }
 
-    Patient "1" *-- "0..*" Episode : contient
-    Patient "1" *-- "0..*" Tache : possède
-    Patient "1" *-- "0..*" Enrolement : trace
-    Patient "1" *-- "0..*" ProgrammeDepistage : suit
-    ProgrammeDepistage "1" *-- "0..*" CareTimelineStep : jalonne
-    ProgrammeDepistage "1" *-- "0..*" DocumentMedical : intègre
-    Praticien "1" --> "0..*" Patient : suit
-    Praticien "1" --> "0..*" DocumentMedical : signe
-    FilDiscussion ..> Patient : notifie
-    FilDiscussion ..> Praticien : informe`;
+    class Attachment {
+        +string nom
+        +string taille
+    }
+
+    class RoleProfile {
+        +string nom
+        +string fonction
+        +string structure
+        +string initiales
+    }
+
+    class AppMetadata {
+        +string id
+        +RoleProfile manager
+        +RoleProfile patient
+        +RoleProfile practitioner
+        +UserRole defaultRole
+        +string activePatientId
+        +string activePractitionerId
+    }
+
+    class DemoDataBundle {
+        +Patient[] patients
+        +Practitioner[] practitioners
+        +MessageThread[] messages
+        +RoleProfile[] roleProfiles
+        +UserRole defaultRole
+        +string activePatientId
+        +string activePractitionerId
+    }
+
+    Patient "1" *-- "1" Constantes : constantes imbriquées
+    Patient "1" *-- "0..*" Episode : episodes imbriqués
+    Patient "1" *-- "0..*" Task : tasks imbriquées
+    Patient "1" *-- "0..*" Enrollment : enrollments imbriqués
+    Patient "1" *-- "0..*" ScreeningProgram : programs imbriqués
+    ScreeningProgram "1" *-- "0..*" CareTimelineStep : parcours
+    ScreeningProgram "1" *-- "0..*" Questionnaire : formulaires
+    ScreeningProgram "1" *-- "0..*" ProposedExam : examensProposes
+    ScreeningProgram "1" *-- "0..*" ScreeningDocument : documents
+    MessageThread "1" *-- "0..*" Attachment : pièces jointes
+    Patient ..> Practitioner : praticienId (référence par identifiant)
+    DemoDataBundle o-- Patient : patients
+    DemoDataBundle o-- Practitioner : practitioners
+    DemoDataBundle o-- MessageThread : messages
+    DemoDataBundle o-- RoleProfile : roleProfiles
+    AppMetadata o-- RoleProfile : profils dans app_metadata
+
+    note for Patient "Stocké comme un objet dans le magasin patients. Ses sous-objets sont imbriqués, pas des magasins séparés."
+    note for MessageThread "Les interlocuteurs sont des chaînes et roleCible est un rôle. Aucun identifiant Patient/Practitioner n'est défini ici."
+    note for DemoDataBundle "Objet d'amorçage et payload de collections, pas un magasin IndexedDB."
+    note for AppMetadata "Un enregistrement bootstrap dans le magasin app_metadata."
+`;
 
 const PATIENT_JOURNEY_MERMAID_CODE = `sequenceDiagram
     autonumber
@@ -240,7 +334,7 @@ export function UmlViewer() {
           <span className="font-semibold text-xs tracking-tight">Mermaid Viewer</span>
           <span className="text-[11px] text-slate-400 border-l border-slate-700 pl-2">
             {activeDiagram === "schema"
-              ? "1. Schéma Entités-Relations"
+              ? "1. Modèle de données complet"
               : activeDiagram === "flow"
               ? "2. Flux Parcours Patient"
               : "3. Cycle de Vie Dépistage"}
@@ -259,7 +353,7 @@ export function UmlViewer() {
                 activeDiagram === "schema" ? "bg-blue-600 text-white shadow-xs" : "text-slate-300 hover:text-white"
               }`}
             >
-              1. Schéma Entités-Relations
+              1. Modèle de données complet
             </button>
             <button
               onClick={() => {

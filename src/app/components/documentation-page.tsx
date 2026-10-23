@@ -222,8 +222,8 @@ const DATA_DICTIONARY: Record<string, ObjectDef> = {
       { name: "prochainExamen", type: "string", example: '"Janvier 2028"', description: "Période planifiée du prochain contrôle." },
       { name: "historique", type: "string[]", example: '["2024: ACR 2", "2022: ACR 1"]', description: "Historique des conclusions d'examens." },
       { name: "parcours", type: "CareTimelineStep[]", example: "[...]", description: "Jalons chronologiques de la timeline de soins." },
-      { name: "formulaires", type: "object[]", example: "[...]", description: "Questionnaires (statuts: 'À compléter' | 'Complet' | 'À revoir')." },
-      { name: "examensProposes", type: "object[]", example: "[...]", description: "Actes préconisés avec justification clinique." },
+      { name: "formulaires", type: "Questionnaire[]", example: "[...]", description: "Questionnaires de dépistage intégrés au programme." },
+      { name: "examensProposes", type: "ProposedExam[]", example: "[...]", description: "Examens proposés, leur justification et leur résultat." },
       { name: "documents", type: "DocumentMedical[]", example: "[...]", description: "Comptes-rendus radiologiques et bilans biologiques." },
     ],
   },
@@ -278,7 +278,7 @@ const DATA_DICTIONARY: Record<string, ObjectDef> = {
         description: "Dossier de classement du message.",
         choices: ["Réception", "Envoyés", "Brouillons", "Archives"],
       },
-      { name: "securise", type: "boolean", example: "true", description: "Garantie de transmission chiffrée (MSSanté)." },
+      { name: "securise", type: "boolean", example: "true", description: "Indicateur booléen de sécurisation déclaré par le fil." },
       {
         name: "importance",
         type: "enum",
@@ -296,8 +296,91 @@ const DATA_DICTIONARY: Record<string, ObjectDef> = {
       { name: "piecesJointes", type: "object[]", example: '[{ nom: "convocation.pdf", taille: "1.2 Mo" }]', description: "Fichiers joints attachés au fil." },
     ],
   },
+  Questionnaire: {
+    title: "Questionnaire",
+    description: "Questionnaire intégré à un ProgrammeDepistage. Les champs sont des libellés de questions.",
+    fields: [
+      { name: "id", type: "string", example: '"form-1"', description: "Identifiant du questionnaire dans le programme." },
+      { name: "titre", type: "string", example: '"Antécédents familiaux"', description: "Titre affiché." },
+      { name: "statut", type: "enum", example: '"À compléter"', description: "État de complétion.", choices: ["À compléter", "Complet", "À revoir"] },
+      { name: "description", type: "string", example: '"Questionnaire de santé préalable"', description: "Explication du questionnaire." },
+      { name: "champs", type: "string[]", example: '["Antécédents", "Traitements"]', description: "Libellés des champs du formulaire." },
+    ],
+  },
+  ProposedExam: {
+    title: "ProposedExam",
+    description: "Examens proposés dans un ProgrammeDepistage. Objet sans identifiant propre dans le type actuel.",
+    fields: [
+      { name: "nom", type: "string", example: '"Mammographie bilatérale"', description: "Nom de l'examen proposé." },
+      { name: "justification", type: "string", example: '"Dépistage organisé"', description: "Motif ou contexte clinique indiqué." },
+      { name: "resultat", type: "string", example: '"À réaliser"', description: "Résultat ou état résumé." },
+    ],
+  },
+  Constantes: {
+    title: "Constantes",
+    description: "Objet biométrique imbriqué dans Patient.",
+    fields: [
+      { name: "imc", type: "string", example: '"22.4"', description: "Indice de masse corporelle." },
+      { name: "tension", type: "string", example: '"12/8"', description: "Tension artérielle au format affiché." },
+      { name: "frequenceCardiaque", type: "string", example: '"72 bpm"', description: "Fréquence cardiaque." },
+      { name: "saturation", type: "string", example: '"98%"', description: "Saturation en oxygène." },
+    ],
+  },
+  RoleProfile: {
+    title: "RoleProfile",
+    description: "Profil de présentation associé à chacun des rôles utilisateur.",
+    fields: [
+      { name: "nom", type: "string", example: '"Claire Lemoine"', description: "Nom affiché du profil." },
+      { name: "fonction", type: "string", example: '"Patiente"', description: "Fonction affichée." },
+      { name: "structure", type: "string", example: '"Bordeaux"', description: "Structure ou contexte affiché." },
+      { name: "initiales", type: "string", example: '"CL"', description: "Initiales utilisées dans l'interface." },
+    ],
+  },
+  AppMetadata: {
+    title: "AppMetadata",
+    description: "Enregistrement bootstrap stocké dans app_metadata.",
+    fields: [
+      { name: "id", type: "string", example: '"bootstrap"', description: "Clé de l'enregistrement de métadonnées." },
+      { name: "roleProfiles", type: "Record<UserRole, RoleProfile>", example: "{ manager, patient, practitioner }", description: "Profils de démonstration indexés par rôle." },
+      { name: "defaultRole", type: "UserRole", example: '"manager"', description: "Rôle actif par défaut.", choices: ["manager", "patient", "practitioner"] },
+      { name: "activePatientId", type: "string", example: '"pt-1"', description: "Identifiant du patient actif dans la session." },
+      { name: "activePractitionerId", type: "string", example: '"med-1"', description: "Identifiant du praticien actif dans la session." },
+    ],
+  },
+  DemoDataBundle: {
+    title: "DemoDataBundle",
+    description: "Bundle de seed et payload de collections. Ce n'est pas un magasin IndexedDB.",
+    fields: [
+      { name: "patients", type: "Patient[]", example: "[...]", description: "Collection de patients complète, avec sous-objets imbriqués." },
+      { name: "practitioners", type: "Practitioner[]", example: "[...]", description: "Collection de professionnels." },
+      { name: "messages", type: "MessageThread[]", example: "[...]", description: "Collection de fils de discussion." },
+      { name: "roleProfiles", type: "Record<UserRole, RoleProfile>", example: "{ manager, patient, practitioner }", description: "Profils par rôle." },
+      { name: "defaultRole", type: "UserRole", example: '"manager"', description: "Rôle sélectionné au démarrage." },
+      { name: "activePatientId", type: "string", example: '"pt-1"', description: "Patient actif par défaut." },
+      { name: "activePractitionerId", type: "string", example: '"med-1"', description: "Praticien actif par défaut." },
+    ],
+  },
+  CareTimelineStep: {
+    title: "CareTimelineStep",
+    description: "Étape chronologique imbriquée dans le parcours d'un ProgrammeDepistage.",
+    fields: [
+      { name: "id", type: "string", example: '"step-1"', description: "Identifiant de l'étape." },
+      { name: "titre", type: "string", example: '"Envoi du courrier d’invitation"', description: "Intitulé de l'étape." },
+      { name: "periode", type: "string", example: '"Janvier 2026"', description: "Date ou période affichée." },
+      { name: "statut", type: "enum", example: '"En cours"', description: "Position dans le parcours.", choices: ["Précédent", "En cours", "Suivant"] },
+      { name: "detail", type: "string", example: '"Courrier envoyé"', description: "Précision opérationnelle." },
+    ],
+  },
+  Attachment: {
+    title: "Attachment",
+    description: "Pièce jointe facultative, imbriquée dans un MessageThread.",
+    fields: [
+      { name: "nom", type: "string", example: '"convocation.pdf"', description: "Nom du fichier joint." },
+      { name: "taille", type: "string", example: '"1.2 Mo"', description: "Taille affichée du fichier." },
+    ],
+  },
 };
-
+ 
 export function DocumentationPage() {
   const [activeTab, setActiveTab] = useState<"dictionary" | "functional" | "flows" | "raw">("dictionary");
   const [selectedEntity, setSelectedEntity] = useState<string>("Patient");
@@ -387,7 +470,16 @@ export function DocumentationPage() {
                   Dictionnaire des Propriétés par Objet
                 </h2>
                 <p className="text-xs text-gray-500 mt-1">
-                  Sélectionnez une entité pour consulter ses attributs, types, exemples, descriptions et listes de choix exhaustives.
+                  Modèle complet aligné sur les interfaces TypeScript. Les listes métier sont imbriquées dans le dossier Patient.
+                </p>
+                <div className="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-2 text-[11px]">
+                  <div className="rounded-md border border-slate-200 bg-slate-50 p-2"><strong>patients</strong><br />Patient et ses sous-objets imbriqués</div>
+                  <div className="rounded-md border border-slate-200 bg-slate-50 p-2"><strong>practitioners</strong><br />Praticiens, enregistrements autonomes</div>
+                  <div className="rounded-md border border-slate-200 bg-slate-50 p-2"><strong>messages</strong><br />Fils de discussion autonomes</div>
+                  <div className="rounded-md border border-slate-200 bg-slate-50 p-2"><strong>app_metadata</strong><br />Profil actif, rôles et identifiants de session</div>
+                </div>
+                <p className="text-[11px] text-gray-500 mt-2">
+                  IndexedDB utilise ces quatre magasins. Les liens par identifiant sont des références applicatives, sans contraintes relationnelles. DemoDataBundle sert au seed et aux réponses de collections, pas de magasin.
                 </p>
               </div>
 
@@ -768,19 +860,15 @@ export function DocumentationPage() {
 ## 2. Architecture des Données & Relations
 - Diagramme de classes UML Mermaid.
 
-## 3. Dictionnaire Détaillé des Propriétés par Objet
-- Patient (28 propriétés typées avec enum exhaustifs)
-- Praticien (9 propriétés)
-- Episode (5 propriétés)
-- Enrolement (5 propriétés)
-- Tache (6 propriétés)
-- ProgrammeDepistage (10 propriétés)
-- CareTimelineStep (5 propriétés)
-- DocumentMedical (8 propriétés)
-- FilDiscussion (13 propriétés)
+## 3. Dictionnaire des Données
+- Interfaces TypeScript principales : Patient, Practitioner, Episode, Task, Enrollment, ScreeningProgram, ScreeningDocument, MessageThread et DemoDataBundle.
+- Objets imbriqués documentés : Constantes, CareTimelineStep, Questionnaire, ProposedExam et Attachment.
+- Métadonnées documentées : RoleProfile et AppMetadata; valeurs des enums indiquées dans les fiches.
 
 ## 4. Architecture de Stockage IndexedDB
-- esis-fake-firestore v1 (patients, practitioners, messages, app_metadata)
+- esis-fake-firestore v1 : magasins patients, practitioners, messages et app_metadata.
+- Les sous-objets métier restent imbriqués dans leur Patient ou Programme; ils ne sont pas des magasins séparés.
+- DemoDataBundle sert à l'amorçage et aux payloads de collections, pas au stockage.
 
 ## 5. Diagrammes UML Mermaid
 - State machine cycle de vie

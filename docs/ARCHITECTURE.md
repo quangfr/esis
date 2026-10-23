@@ -35,22 +35,33 @@ classDiagram
         +string prenom
         +string dateNaissance
         +string nir
-        +string typeDepistage
-        +string statut
-        +string risque
+        +ScreeningType typeDepistage
+        +PatientStatus statut
+        +string derniereVisite
+        +string prochainRappel
         +string praticienId
         +string centre
         +string ville
         +string telephone
         +string email
+        +PatientRisk risque
+        +ContactChannel canalPrefere
+        +CoverageStatus couverture
         +number progression
+        +string medecinTraitant
+        +BloodGroup groupeSanguin
+        +string[] allergies
+        +string[] antecedents
+        +string[] traitements
+        +Constantes constantes
+        +string situationCourante
         +Episode[] episodes
-        +Tache[] tasks
-        +Enrolement[] enrollments
-        +ProgrammeDepistage[] programs
+        +Task[] tasks
+        +Enrollment[] enrollments
+        +ScreeningProgram[] programs
     }
 
-    class Praticien {
+    class Practitioner {
         +string id
         +string nom
         +string prenom
@@ -58,85 +69,166 @@ classDiagram
         +string structure
         +string ville
         +number patientsActifs
-        +string charge
+        +Workload charge
         +string disponibilite
     }
 
     class Episode {
         +string id
-        +string type
-        +string statut
+        +ScreeningType type
+        +EpisodeStatus statut
         +string dateOuverture
         +string prochaineEtape
     }
 
-    class Enrolement {
+    class Task {
         +string id
-        +string canal
-        +string statut
+        +string titre
+        +string echeance
+        +Priority priorite
+        +TaskStatus statut
+        +string assigneA
+    }
+
+    class Enrollment {
+        +string id
+        +EnrollmentChannel canal
+        +EnrollmentStatus statut
         +string date
         +boolean consentement
     }
 
-    class Tache {
-        +string id
-        +string titre
-        +string echeance
-        +string priorite
-        +string statut
-        +string assigneA
-    }
-
-    class ProgrammeDepistage {
-        +string type
-        +string niveauRisque
+    class ScreeningProgram {
+        +ScreeningType type
+        +ProgramRisk niveauRisque
         +string tendanceRegionale
         +string resultatCle
         +string prochainExamen
+        +string[] historique
         +CareTimelineStep[] parcours
-        +DocumentMedical[] documents
+        +Questionnaire[] formulaires
+        +ProposedExam[] examensProposes
+        +ScreeningDocument[] documents
     }
 
     class CareTimelineStep {
         +string id
         +string titre
         +string periode
-        +string statut
+        +TimelineStatus statut
         +string detail
     }
 
-    class DocumentMedical {
+    class Questionnaire {
         +string id
         +string titre
-        +string type
+        +QuestionnaireStatus statut
+        +string description
+        +string[] champs
+    }
+
+    class ProposedExam {
+        +string nom
+        +string justification
+        +string resultat
+    }
+
+    class ScreeningDocument {
+        +string id
+        +string titre
+        +DocumentType type
         +string date
-        +string statut
+        +DocumentStatus statut
+        +string aperçu
+        +string indicateur
         +string auteur
     }
 
-    class FilDiscussion {
+    class Constantes {
+        +string imc
+        +string tension
+        +string frequenceCardiaque
+        +string saturation
+    }
+
+    class MessageThread {
         +string id
         +string sujet
         +string expediteur
         +string destinataire
+        +string aperçu
         +string contenu
         +string date
-        +string statut
-        +string boite
+        +MessageStatus statut
+        +Mailbox boite
         +boolean securise
-        +string roleCible
+        +Importance importance
+        +TargetRole roleCible
+        +Attachment[] piecesJointes
     }
 
-    Patient "1" --> "0..*" Episode : contient
-    Patient "1" --> "0..*" Tache : possède
-    Patient "1" --> "0..*" Enrolement : trace
-    Patient "1" --> "0..*" ProgrammeDepistage : suit
-    Patient "0..*" --> "1" Praticien : est suivi par
-    ProgrammeDepistage "1" --> "0..*" CareTimelineStep : étapes
-    ProgrammeDepistage "1" --> "0..*" DocumentMedical : documents
-    FilDiscussion ..> Patient : peut concerner
-    FilDiscussion ..> Praticien : expédié / reçu
+    class Attachment {
+        +string nom
+        +string taille
+    }
+
+    class RoleProfile {
+        +string nom
+        +string fonction
+        +string structure
+        +string initiales
+    }
+
+    class AppMetadata {
+        +string id
+        +RoleProfile manager
+        +RoleProfile patient
+        +RoleProfile practitioner
+        +UserRole defaultRole
+        +string activePatientId
+        +string activePractitionerId
+    }
+
+    class DemoDataBundle {
+        +Patient[] patients
+        +Practitioner[] practitioners
+        +MessageThread[] messages
+        +RoleProfile[] roleProfiles
+        +UserRole defaultRole
+        +string activePatientId
+        +string activePractitionerId
+    }
+
+    Patient "1" *-- "1" Constantes : constantes imbriquées
+    Patient "1" *-- "0..*" Episode : episodes imbriqués
+    Patient "1" *-- "0..*" Task : tasks imbriquées
+    Patient "1" *-- "0..*" Enrollment : enrollments imbriqués
+    Patient "1" *-- "0..*" ScreeningProgram : programs imbriqués
+    ScreeningProgram "1" *-- "0..*" CareTimelineStep : parcours
+    ScreeningProgram "1" *-- "0..*" Questionnaire : formulaires
+    ScreeningProgram "1" *-- "0..*" ProposedExam : examensProposes
+    ScreeningProgram "1" *-- "0..*" ScreeningDocument : documents
+    MessageThread "1" *-- "0..*" Attachment : pièces jointes
+    Patient ..> Practitioner : praticienId (référence par identifiant)
+    DemoDataBundle o-- Patient : patients
+    DemoDataBundle o-- Practitioner : practitioners
+    DemoDataBundle o-- MessageThread : messages
+    DemoDataBundle o-- RoleProfile : roleProfiles
+    AppMetadata o-- RoleProfile : profils dans app_metadata
+
+    note for Patient "Stocké comme un objet dans le magasin patients. Ses sous-objets sont imbriqués, pas des magasins séparés."
+    note for MessageThread "Les interlocuteurs sont des chaînes et roleCible est un rôle. Aucun identifiant Patient/Practitioner n'est défini ici."
+    note for DemoDataBundle "Objet d'amorçage et payload de collections, pas un magasin IndexedDB."
+    note for AppMetadata "Un enregistrement bootstrap dans le magasin app_metadata."
 ```
+
+### Représentation et limites du modèle
+
+Le modèle applicatif est constitué d'objets TypeScript. IndexedDB contient quatre magasins (`patients`, `practitioners`, `messages`, `app_metadata`), chacun avec une clé `id`. Les épisodes, tâches, enrôlements et programmes sont des tableaux imbriqués dans un objet patient. Les étapes, questionnaires, examens proposés et documents sont à leur tour imbriqués dans un programme; les pièces jointes sont imbriquées dans un fil de discussion. Ces éléments ne sont donc pas des magasins ou tables autonomes.
+
+`praticienId`, `assigneA` et `auteur` sont des chaînes de caractères. Le schéma ne déclare pas de contraintes de clé étrangère ni de relations relationnelles garanties. Les messages contiennent des noms d'expéditeur et de destinataire et un rôle cible, mais aucun identifiant de patient ou praticien; le diagramme n'invente donc pas de lien direct entre un fil et ces objets.
+
+`DemoDataBundle` sert à l'amorçage initial et aux réponses de collections. Ce n'est pas un magasin IndexedDB. `app_metadata` conserve l'enregistrement `bootstrap`, les profils par rôle, le rôle par défaut et les identifiants actifs.
 
 ---
 
@@ -312,10 +404,10 @@ L'application émule un backend Firestore sans nécessiter de serveur distant vi
 
 | Store | Clé (`keyPath`) | Description |
 | :--- | :--- | :--- |
-| `patients` | `id` | Documents patients complets avec sous-collections dénormalisées |
-| `practitioners` | `id` | Professionnels de santé partenaires |
-| `messages` | `id` | Fils de discussion de la messagerie |
-| `app_metadata` | `id` | Métadonnées de session (`bootstrap` : rôle actif, profil, IDs courants) |
+| `patients` | `id` | Objet Patient complet; episodes, tasks, enrollments et programs y sont imbriqués |
+| `practitioners` | `id` | Enregistrements Practitioner |
+| `messages` | `id` | Enregistrements MessageThread |
+| `app_metadata` | `id` | Enregistrement `bootstrap` avec roleProfiles, defaultRole et identifiants actifs |
 
 ### 4.2. Hiérarchie d'accès aux données
 
