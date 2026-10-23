@@ -248,7 +248,7 @@ Entité centrale représentant l'usager éligible ou enrôlé dans un ou plusieu
 | `statut` | `enum` | `"Invité"` | Statut global dans la campagne en cours :<br>• `"En attente"`<br>• `"Invité"`<br>• `"Examen réalisé"`<br>• `"Résultats disponibles"` |
 | `derniereVisite` | `string` | `"12/01/2026"` | Date du dernier contact ou examen de dépistage réalisé. |
 | `prochainRappel` | `string` | `"12/01/2028"` | Échéance calculée du prochain rappel de dépistage. |
-| `praticienId` | `string` | `"med-1"` | Référence (clé étrangère) vers le `Practitioner` référent. |
+| `praticienId` | `string` | `"med-1"` | Identifiant applicatif du praticien référent; aucune contrainte de clé étrangère n’est déclarée. |
 | `centre` | `string` | `"Centre de Radiologie Gambetta"` | Centre d'examen ou structure de soins rattachée. |
 | `ville` | `string` | `"Bordeaux"` | Ville de résidence ou de prise en charge. |
 | `telephone` | `string` | `"06 12 34 56 78"` | Numéro de téléphone mobile pour les notifications et relances. |
