@@ -871,10 +871,12 @@ export function DocumentationPage() {
 - DemoDataBundle sert à l'amorçage et aux payloads de collections, pas au stockage.
 
 ## 5. Diagrammes UML Mermaid
-- State machine cycle de vie
-- Séquence de bootstrap
-- Séquence d'enrôlement patient
-- Séquence de messagerie`}</pre>
+- Modèle de données complet : objets stockés, structures imbriquées et références par identifiant.
+- Flux de l'application : démarrage, création/mise à jour d'un dossier patient et messagerie persistée localement.
+- Cycle de vie des statuts disponibles dans le dossier patient et modification manuelle par le gestionnaire.
+- Parcours patient dans l'application : consultation, création guidée ou mise à jour du dossier.
+
+Ces diagrammes décrivent la démo front-end actuelle. Les envois externes (courrier/SMS), rendez-vous, actes médicaux et transmissions de résultats ne sont pas implémentés.`}</pre>
           </div>
         </div>
       )}

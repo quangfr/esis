@@ -438,7 +438,9 @@ Pour assurer une démonstration interactive fiable et déterministe sans dépend
 
 ## 5. Diagrammes des Flux Fonctionnels & UML Mermaid
 
-### 5.1. Flux d'Initialisation & Démarrage de l'Application
+> **Périmètre de ces diagrammes :** ils décrivent la démo ESIS telle qu'elle est implémentée dans le dépôt. Il s'agit d'une application front-end avec persistance locale IndexedDB simulant une API Firestore; elle ne réalise pas les actes cliniques, envois postaux/SMS, prises de rendez-vous ou transmissions médicales représentés dans un véritable parcours de dépistage.
+
+### 5.1. Flux de démarrage et de chargement des données
 
 ```mermaid
 sequenceDiagram
@@ -446,94 +448,121 @@ sequenceDiagram
     actor User as Utilisateur
     participant UI as React UI (App)
     participant Provider as AppStateProvider
-    participant Remote as Remote Data Layer
-    participant FakeFS as Fake Firestore (API Engine)
-    participant IDB as IndexedDB (esis-fake-firestore)
-    participant Seed as Demo Data JSON
+    participant Remote as remote-data
+    participant FakeFS as fake-firestore
+    participant IDB as IndexedDB
+    participant Seed as demoDataBundle
 
     User->>UI: Ouvre la plateforme ESIS
     UI->>Provider: Initialisation (Mount)
     Provider->>Remote: loadAppData()
     Remote->>FakeFS: fakeFirestoreRequest("GET /bootstrap")
-    FakeFS->>IDB: Lecture 'app_metadata/bootstrap'
-    alt IndexedDB est vide ou non initialisé
-        FakeFS->>Seed: Lecture createDemoDataBundle()
-        FakeFS->>IDB: Ecriture stores (patients, praticiens, fil_discussions, metadata)
-        IDB-->>FakeFS: Confirmation écriture seed
-    else Données existantes dans IndexedDB
-        IDB-->>FakeFS: Restitution des collections sauvegardées
+    FakeFS->>IDB: Vérifie app_metadata/bootstrap
+    alt IndexedDB non initialisée
+        FakeFS->>Seed: Lit les données statiques de démo
+        FakeFS->>IDB: Initialise patients, practitioners, messages et app_metadata
+        IDB-->>FakeFS: Confirmation des écritures
+    else IndexedDB déjà initialisée
+        FakeFS->>IDB: Lit les trois magasins et les métadonnées
+        IDB-->>FakeFS: Collections et profil actif
     end
-    FakeFS-->>Remote: Response 200 OK (DemoDataBundle)
-    Remote-->>Provider: Données hydratées
-    Provider->>UI: Mise à jour du State global & Fin de chargement (isLoading = false)
-    UI-->>User: Affichage du Tableau de Bord
+    FakeFS-->>Remote: DemoDataBundle
+    Remote-->>Provider: Données chargées (ou repli sur données locales si erreur)
+    Provider-->>UI: État global mis à jour et fin du chargement
+    UI-->>User: Affichage de l'espace actif
 ```
 
 ---
 
-### 5.2. Flux Métier : Enrôlement & Création d'un Nouveau Patient
+### 5.2. Parcours patient dans l'application
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Manager as Gestionnaire
-    participant PatientsUI as PatientsPage
-    participant Provider as AppStateProvider
-    participant FakeFS as Fake Firestore
-    participant IDB as IndexedDB
+    actor G as Gestionnaire
+    participant UI as PatientsPage
+    participant State as AppStateProvider
+    participant Store as fake-firestore
+    participant IDB as IndexedDB (patients)
 
-    Manager->>PatientsUI: Renseigne le formulaire & clique sur "Créer le patient"
-    PatientsUI->>Provider: createPatient(nouveauPatient)
-    Provider->>FakeFS: createPatientInFakeFirestore(nouveauPatient)
-    FakeFS->>IDB: put("patients", nouveauPatient)
-    IDB-->>FakeFS: Succès transaction
-    FakeFS-->>Provider: Résolution Promise (OK)
-    Provider->>Provider: Met à jour patients[] en mémoire & activePatientId
-    Provider-->>PatientsUI: Re-render avec le nouveau patient actif
-    PatientsUI-->>Manager: Feedback visuel & affichage du dossier créé
+    G->>UI: Ouvre l'espace patients et consulte la liste
+    UI->>State: Lit patients, praticiens et dossier actif
+    State-->>UI: Données chargées
+    alt Création d'un dossier
+        G->>UI: Parcourt le formulaire guidé et clique sur Créer
+        UI->>UI: Construit le patient avec un épisode et un enrôlement initiaux
+        UI->>State: createPatient(patient)
+        State->>Store: createPatientInFakeFirestore(patient)
+        Store->>IDB: Enregistre l'objet Patient complet par id
+        IDB-->>State: Écriture terminée
+        State->>State: Ajoute le patient à la liste et le rend actif
+    else Mise à jour d'un dossier
+        G->>UI: Modifie le statut, le téléphone ou la ville puis enregistre
+        UI->>State: updatePatient(patient)
+        State->>Store: updatePatientInFakeFirestore(patient)
+        Store->>IDB: Remplace l'objet Patient par id
+        IDB-->>State: Écriture terminée
+        State->>State: Met à jour la liste et le patient actif
+    end
+    State-->>UI: État actualisé
+    UI-->>G: Affiche le dossier mis à jour
 ```
 
 ---
 
-### 5.3. Flux Métier : Émission et Traitement d'un Message Sécurisé
+### 5.3. Flux d'envoi d'un message
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Sender as Expéditeur (Manager / Praticien)
-    participant MsgUI as MessagingPage
-    participant Provider as AppStateProvider
-    participant FakeFS as Fake Firestore
-    participant IDB as IndexedDB
+    actor U as Utilisateur du rôle actif
+    participant UI as MessagingPage
+    participant State as AppStateProvider
+    participant Store as fake-firestore
+    participant IDB as IndexedDB (messages)
 
-    Sender->>MsgUI: Rédige un message (Sujet, Destinataire, Pièce jointe)
-    Sender->>MsgUI: Valide l'envoi
-    MsgUI->>Provider: createMessage(nouveauMessage)
-    Provider->>FakeFS: createMessageInFakeFirestore(nouveauMessage)
-    FakeFS->>IDB: put("messages", nouveauMessage)
-    IDB-->>FakeFS: Confirmation écriture
-    FakeFS-->>Provider: OK
-    Provider->>Provider: prepend nouveauMessage dans messages[]
-    Provider-->>MsgUI: Rafraîchissement de la boîte d'envoi / fils
-    MsgUI-->>Sender: Confirmation d'envoi affichée
+    U->>UI: Compose destinataire, sujet et contenu
+    UI->>UI: Construit un message (Envoyé, boîte Envoyés)
+    UI->>State: createMessage(message)
+    State->>Store: createMessageInFakeFirestore(message)
+    Store->>IDB: Enregistre le message par id
+    IDB-->>State: Écriture terminée
+    State->>State: Ajoute le message à l'état React
+    State-->>UI: Messages actualisés
+    UI->>UI: Sélectionne la boîte Envoyés et le nouveau message
+    UI-->>U: Affiche le message envoyé
+
+> Dans cette démo, le message est persisté localement et reçoit le statut « Envoyé » dans l'interface. Aucun transport vers un destinataire externe n'est effectué.
 ```
 
 ---
 
-### 5.4. Cycle de Vie d'un Parcours de Dépistage
+### 5.4. Cycle de vie des statuts représentés dans le code
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Eligible: Identification cohorte / Age / NIR
-    Eligible --> EnAttente: Enrôlement saisi (Portail / Campagne)
-    EnAttente --> Invite: Envoi invitation / kit de dépistage
-    Invite --> ExamenPlanifie: Prise de RDV / Réception kit
-    ExamenPlanifie --> ExamenRealise: Examen réalisé chez le praticien
-    ExamenRealise --> ResultatsDisponibles: Transmission & double lecture
-    ResultatsDisponibles --> SuiviStandard: Résultat négatif (Rappel à 2 ans)
-    ResultatsDisponibles --> SurveillanceRapprochee: Anomalie / Avis spécialisé
-    SuiviStandard --> [*]
-    SurveillanceRapprochee --> [*]
+    state "Patient.statut" as PatientStatus {
+        [*] --> EnAttente
+        EnAttente: En attente
+        EnAttente --> Invite: Statut édité dans l'espace gestionnaire
+        Invite: Invité
+        Invite --> ExamenRealise: Statut édité dans l'espace gestionnaire
+        ExamenRealise: Examen réalisé
+        ExamenRealise --> ResultatsDisponibles: Statut édité dans l'espace gestionnaire
+        ResultatsDisponibles: Résultats disponibles
+    }
+    note right of PatientStatus: Valeurs de l'union Patient.statut.\nPas de transition automatique à la réception d'un résultat.
+
+    state "Task.statut (objet imbriqué)" as TaskStatus {
+        [*] --> Afaire
+        Afaire: À faire
+        Afaire --> EnCours
+        EnCours: En cours
+        EnCours --> Bloquee
+        Bloquee: Bloquée
+        EnCours --> Terminee
+        Terminee: Terminée
+    }
 ```
 
 ---

@@ -12,6 +12,7 @@ import {
   Eye,
   RefreshCw,
   GitBranch,
+  ChevronDown,
 } from "lucide-react";
 
 const SCHEMA_MERMAID_CODE = `classDiagram
@@ -210,36 +211,88 @@ const SCHEMA_MERMAID_CODE = `classDiagram
     note for AppMetadata "Un enregistrement bootstrap dans le magasin app_metadata."
 `;
 
-const PATIENT_JOURNEY_MERMAID_CODE = `sequenceDiagram
-    autonumber
-    actor P as Patient (Usager)
-    actor C as Coordination ESIS
-    actor M as Praticien / Centre
+const APP_FLOWS_MERMAID_CODE = `flowchart TB
+    subgraph Bootstrap["Démarrage de l'application"]
+        direction LR
+        Open["Ouverture de l'application"] --> Load["AppStateProvider appelle loadAppData"]
+        Load --> API["fake-firestore : GET /bootstrap"]
+        API --> Seeded{"Métadonnées bootstrap présentes ?"}
+        Seeded -->|Non| Demo["Initialise IndexedDB depuis demoDataBundle"]
+        Seeded -->|Oui| Read["Lit patients, practitioners, messages et métadonnées"]
+        Demo --> Ready["DemoDataBundle chargé dans l'état React"]
+        Read --> Ready
+        API -. "si erreur : repli" .-> Local["Données locales demoDataBundle"]
+    end
 
-    Note over C: 1. Identification & Ciblage de l'éligibilité
-    C->>P: 2. Envoi invitation & kit de dépistage (SMS / Courrier)
-    P->>C: 3. Enrôlement & consentement éclairé (Portail en ligne)
-    P->>M: 4. Prise de rendez-vous & examen (Mammographie / Test FIT)
-    M->>M: 5. Réalisation acte & double lecture experte
-    M->>C: Télétransmission compte-rendu radiologique / biologique
-    C->>P: 6. Mise à disposition compte-rendu sécurisé & notification
-    alt Résultat Normal (Négatif / ACR 1-2)
-        C->>P: Clôture du cycle standard & rappel planifié à 24 mois
-    else Anomalie Détectée (Positif / ACR 4-5)
-        C->>M: Alerte prioritaire & déclenchement bilan diagnostique
+    subgraph Patient["Création ou mise à jour d'un patient"]
+        direction LR
+        Manager["Gestionnaire dans PatientsPage"] --> Action{"Action"}
+        Action -->|Création guidée| Create["Construit le dossier initial, avec épisode et enrôlement"]
+        Action -->|Enregistrement| Edit["Modifie statut, téléphone ou ville"]
+        Create --> PatientStore["AppStateProvider → fake-firestore"]
+        Edit --> PatientStore
+        PatientStore --> PatientIDB["Écrit l'objet Patient complet par id"]
+        PatientIDB --> PatientUI["Met à jour la liste et sélectionne le dossier actif"]
+    end
+
+    subgraph Messaging["Envoi d'un message dans la démo"]
+        direction LR
+        User["Utilisateur du rôle actif"] --> Compose["Compose destinataire, sujet et contenu"]
+        Compose --> Message["Crée un MessageThread : Envoyé, boîte Envoyés"]
+        Message --> MessageStore["AppStateProvider → fake-firestore"]
+        MessageStore --> MessageIDB["Écrit le fil dans IndexedDB (messages)"]
+        MessageIDB --> Sent["Actualise l'état et affiche la boîte Envoyés"]
     end`;
 
+const PATIENT_JOURNEY_MERMAID_CODE = `sequenceDiagram
+    autonumber
+    actor G as Gestionnaire
+    participant UI as PatientsPage
+    participant State as AppStateProvider
+    participant Store as fake-firestore
+    participant IDB as IndexedDB (patients)
+    participant P as Dossier patient
+
+    G->>UI: Ouvre l'espace patients
+    UI->>State: Demande patients et praticiens
+    State-->>UI: Affiche la liste et le dossier actif
+    alt Création d'un patient
+        G->>UI: Suit les étapes du formulaire puis Créer
+        UI->>UI: Construit le dossier initial (épisode et enrôlement inclus)
+        UI->>State: createPatient(patient)
+        State->>Store: createPatientInFakeFirestore(patient)
+        Store->>IDB: Enregistre le dossier complet par id
+        IDB-->>State: Écriture terminée
+        State->>State: Ajoute le dossier à la liste et le sélectionne
+    else Modification du dossier
+        G->>UI: Modifie statut, téléphone ou ville puis enregistre
+        UI->>State: updatePatient(patient)
+        State->>Store: updatePatientInFakeFirestore(patient)
+        Store->>IDB: Remplace le dossier patient par id
+        IDB-->>State: Écriture terminée
+        State->>State: Met à jour la liste et le dossier actif
+    end
+    State-->>UI: Affiche les données mises à jour
+    UI-->>G: Confirme l'enregistrement du dossier`;
+
 const CYCLE_VIE_MERMAID_CODE = `stateDiagram-v2
-    [*] --> Eligible: Identification cohorte / Age / NIR
-    Eligible --> EnAttente: Enrôlement saisi (Portail / Campagne)
-    EnAttente --> Invite: Envoi invitation / kit de dépistage
-    Invite --> ExamenPlanifie: Prise de RDV / Réception kit
-    ExamenPlanifie --> ExamenRealise: Examen réalisé chez le praticien
-    ExamenRealise --> ResultatsDisponibles: Transmission & double lecture
-    ResultatsDisponibles --> SuiviStandard: Résultat normal (Rappel à 2 ans)
-    ResultatsDisponibles --> SurveillanceRapprochee: Anomalie / Avis spécialisé
-    SuiviStandard --> [*]
-    SurveillanceRapprochee --> [*]`;
+    state "Statut du dossier Patient" as PatientStatus {
+        [*] --> EnAttente
+        EnAttente: En attente
+        Invite: Invité
+        ExamenRealise: Examen réalisé
+        ResultatsDisponibles: Résultats disponibles
+    }
+    note right of PatientStatus: Valeurs exactes de Patient.statut.\nLe gestionnaire peut choisir directement l'une des quatre valeurs dans la fiche.\nAucun enchaînement automatique lié à un acte médical n'est implémenté.`;
+
+const DIAGRAMS = {
+  schema: { label: "Modèle de données", title: "Modèle de données complet", code: SCHEMA_MERMAID_CODE },
+  flow: { label: "Flux", title: "Flux de l'application", code: APP_FLOWS_MERMAID_CODE },
+  lifecycle: { label: "Cycle de vie", title: "Cycle de vie des statuts", code: CYCLE_VIE_MERMAID_CODE },
+  patient: { label: "Parcours patient", title: "Parcours patient dans la démo", code: PATIENT_JOURNEY_MERMAID_CODE },
+} as const;
+
+type DiagramKey = keyof typeof DIAGRAMS;
 
 declare global {
   interface Window {
@@ -251,7 +304,7 @@ declare global {
 }
 
 export function UmlViewer() {
-  const [activeDiagram, setActiveDiagram] = useState<"schema" | "flow" | "lifecycle">("schema");
+  const [activeDiagram, setActiveDiagram] = useState<DiagramKey>("schema");
   const [viewMode, setViewMode] = useState<"rendered" | "code">("rendered");
   const [zoom, setZoom] = useState(1);
   const [svgContent, setSvgContent] = useState<string>("");
@@ -260,12 +313,7 @@ export function UmlViewer() {
   const [copied, setCopied] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const currentMermaidCode =
-    activeDiagram === "schema"
-      ? SCHEMA_MERMAID_CODE
-      : activeDiagram === "flow"
-      ? PATIENT_JOURNEY_MERMAID_CODE
-      : CYCLE_VIE_MERMAID_CODE;
+  const currentMermaidCode = DIAGRAMS[activeDiagram].code;
 
   // Dynamically load Mermaid library from CDN if not already on window
   useEffect(() => {
@@ -333,72 +381,27 @@ export function UmlViewer() {
           <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse"></span>
           <span className="font-semibold text-xs tracking-tight">Mermaid Viewer</span>
           <span className="text-[11px] text-slate-400 border-l border-slate-700 pl-2">
-            {activeDiagram === "schema"
-              ? "1. Modèle de données complet"
-              : activeDiagram === "flow"
-              ? "2. Flux Parcours Patient"
-              : "3. Cycle de Vie Dépistage"}
+            {DIAGRAMS[activeDiagram].title}
           </span>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* 3 Diagrams Selector */}
-          <div className="flex bg-slate-800 p-0.5 rounded-md text-xs font-medium">
-            <button
-              onClick={() => {
-                setActiveDiagram("schema");
+          <label className="sr-only" htmlFor="uml-diagram-selector">Choisir un diagramme</label>
+          <div className="relative">
+            <select
+              id="uml-diagram-selector"
+              value={activeDiagram}
+              onChange={(event) => {
+                setActiveDiagram(event.target.value as DiagramKey);
                 setZoom(1);
               }}
-              className={`px-2.5 py-1 rounded transition-colors ${
-                activeDiagram === "schema" ? "bg-blue-600 text-white shadow-xs" : "text-slate-300 hover:text-white"
-              }`}
+              className="appearance-none rounded-md border border-slate-700 bg-slate-800 py-1.5 pl-3 pr-8 text-xs font-medium text-white outline-none transition-colors hover:bg-slate-700 focus:ring-2 focus:ring-blue-400"
             >
-              1. Modèle de données complet
-            </button>
-            <button
-              onClick={() => {
-                setActiveDiagram("flow");
-                setZoom(1);
-              }}
-              className={`px-2.5 py-1 rounded transition-colors ${
-                activeDiagram === "flow" ? "bg-blue-600 text-white shadow-xs" : "text-slate-300 hover:text-white"
-              }`}
-            >
-              2. Flux Parcours Patient
-            </button>
-            <button
-              onClick={() => {
-                setActiveDiagram("lifecycle");
-                setZoom(1);
-              }}
-              className={`px-2.5 py-1 rounded transition-colors ${
-                activeDiagram === "lifecycle" ? "bg-blue-600 text-white shadow-xs" : "text-slate-300 hover:text-white"
-              }`}
-            >
-              3. Cycle de Vie
-            </button>
-          </div>
-
-          {/* View Mode: Rendered Diagram vs Source Code */}
-          <div className="flex bg-slate-800 p-0.5 rounded-md text-xs font-medium">
-            <button
-              onClick={() => setViewMode("rendered")}
-              className={`px-2 py-1 rounded transition-colors flex items-center gap-1 ${
-                viewMode === "rendered" ? "bg-slate-700 text-white shadow-xs" : "text-slate-400 hover:text-white"
-              }`}
-              title="Affichage graphique"
-            >
-              <Eye className="w-3.5 h-3.5" /> Graphique
-            </button>
-            <button
-              onClick={() => setViewMode("code")}
-              className={`px-2 py-1 rounded transition-colors flex items-center gap-1 ${
-                viewMode === "code" ? "bg-slate-700 text-white shadow-xs" : "text-slate-400 hover:text-white"
-              }`}
-              title="Code source Mermaid"
-            >
-              <Code2 className="w-3.5 h-3.5" /> Code
-            </button>
+              {Object.entries(DIAGRAMS).map(([key, diagram]) => (
+                <option key={key} value={key}>{diagram.label}</option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-300" />
           </div>
 
           {/* Zoom controls (only in rendered mode) */}
@@ -438,6 +441,32 @@ export function UmlViewer() {
             {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
             {copied ? "Copié" : "Copier"}
           </button>
+
+          {/* View mode: icon-only switch, aligned at the far right */}
+          <div className="flex bg-slate-800 p-0.5 rounded-md text-xs font-medium">
+            <button
+              onClick={() => setViewMode("rendered")}
+              className={`p-1.5 rounded transition-colors ${
+                viewMode === "rendered" ? "bg-slate-700 text-white shadow-xs" : "text-slate-400 hover:text-white"
+              }`}
+              aria-label="Affichage graphique"
+              aria-pressed={viewMode === "rendered"}
+              title="Affichage graphique"
+            >
+              <Eye className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => setViewMode("code")}
+              className={`p-1.5 rounded transition-colors ${
+                viewMode === "code" ? "bg-slate-700 text-white shadow-xs" : "text-slate-400 hover:text-white"
+              }`}
+              aria-label="Code source Mermaid"
+              aria-pressed={viewMode === "code"}
+              title="Code source Mermaid"
+            >
+              <Code2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
 
