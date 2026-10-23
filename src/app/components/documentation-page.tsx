@@ -395,9 +395,9 @@ export function DocumentationPage() {
   const activeEntityDef = DATA_DICTIONARY[selectedEntity];
 
   return (
-    <div className={`flex-1 overflow-y-auto w-full ${activeTab === "flows" ? "max-w-none px-2 py-1" : "px-4 py-3 sm:px-6 sm:py-4 max-w-7xl mx-auto"}`}>
+    <div className={`flex-1 overflow-y-auto w-full ${activeTab === "flows" || activeTab === "dictionary" || activeTab === "functional" || activeTab === "raw" ? "max-w-none px-2 py-1" : "px-4 py-3 sm:px-6 sm:py-4 max-w-7xl mx-auto"}`}>
       {/* Header compact */}
-      <div className={activeTab === "flows" ? "mb-2" : "mb-3"}>
+      <div className={activeTab === "flows" || activeTab === "dictionary" || activeTab === "functional" || activeTab === "raw" ? "mb-2" : "mb-3"}>
         <div className="flex items-center gap-2.5">
           <div className="p-1.5 bg-blue-100 text-blue-700 rounded-lg shrink-0">
             <BookOpen className="w-5 h-5" />
@@ -411,7 +411,7 @@ export function DocumentationPage() {
         </div>
 
         {/* Navigation Tabs (compact) */}
-        <div className="flex flex-wrap gap-1 border-b border-gray-200 mt-2.5">
+        <div className="flex flex-wrap gap-1 border-b border-gray-200 mt-2">
           <button
             onClick={() => setActiveTab("dictionary")}
             className={`px-3 py-1.5 text-xs font-medium border-b-2 transition-colors flex items-center gap-1.5 ${
@@ -461,60 +461,37 @@ export function DocumentationPage() {
 
       {/* Tab Content: Data Dictionary */}
       {activeTab === "dictionary" && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-xs">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <TableIcon className="w-5 h-5 text-blue-600" />
-                  Dictionnaire des Propriétés par Objet
-                </h2>
-                <p className="text-xs text-gray-500 mt-1">
-                  Modèle complet aligné sur les interfaces TypeScript. Les listes métier sont imbriquées dans le dossier Patient.
-                </p>
-                <div className="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-2 text-[11px]">
-                  <div className="rounded-md border border-slate-200 bg-slate-50 p-2"><strong>patients</strong><br />Patient et ses sous-objets imbriqués</div>
-                  <div className="rounded-md border border-slate-200 bg-slate-50 p-2"><strong>practitioners</strong><br />Praticiens, enregistrements autonomes</div>
-                  <div className="rounded-md border border-slate-200 bg-slate-50 p-2"><strong>messages</strong><br />Fils de discussion autonomes</div>
-                  <div className="rounded-md border border-slate-200 bg-slate-50 p-2"><strong>app_metadata</strong><br />Profil actif, rôles et identifiants de session</div>
-                </div>
-                <p className="text-[11px] text-gray-500 mt-2">
-                  IndexedDB utilise ces quatre magasins. Les liens par identifiant sont des références applicatives, sans contraintes relationnelles. DemoDataBundle sert au seed et aux réponses de collections, pas de magasin.
-                </p>
+        <div className="h-[calc(100vh-112px)] min-h-0 grid grid-cols-[minmax(132px,190px)_minmax(0,1fr)] gap-2">
+          <aside className="min-h-0 flex flex-col rounded-lg border border-gray-200 bg-white overflow-hidden">
+            <div className="px-3 py-2 border-b border-gray-200 text-xs font-semibold text-gray-700">Objets</div>
+            <nav aria-label="Objets du dictionnaire" className="min-h-0 flex-1 overflow-y-auto p-1.5 space-y-0.5">
+              {Object.keys(DATA_DICTIONARY).map((entityKey) => (
+                <button
+                  key={entityKey}
+                  onClick={() => setSelectedEntity(entityKey)}
+                  aria-current={selectedEntity === entityKey ? "true" : undefined}
+                  className={`w-full min-w-0 rounded-md px-2.5 py-2 text-left text-xs font-medium transition-colors ${
+                    selectedEntity === entityKey
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  }`}
+                >
+                  <span className="block truncate">{entityKey}</span>
+                </button>
+              ))}
+            </nav>
+          </aside>
+
+          {activeEntityDef && (
+            <section aria-label={`Propriétés de ${activeEntityDef.title}`} className="min-w-0 min-h-0 flex flex-col rounded-lg border border-gray-200 bg-white overflow-hidden">
+              <div className="shrink-0 flex items-center gap-2 border-b border-gray-200 px-3 py-2">
+                <TableIcon className="w-4 h-4 text-blue-600" />
+                <h2 className="text-sm font-semibold text-gray-900">{activeEntityDef.title}</h2>
+                <span className="text-[11px] text-gray-500">{activeEntityDef.fields.length} propriétés</span>
               </div>
-
-              {/* Entity Selector Pills */}
-              <div className="flex flex-wrap gap-1.5">
-                {Object.keys(DATA_DICTIONARY).map((entityKey) => (
-                  <button
-                    key={entityKey}
-                    onClick={() => setSelectedEntity(entityKey)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                      selectedEntity === entityKey
-                        ? "bg-blue-600 text-white shadow-xs"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
-                  >
-                    {entityKey}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Selected Entity Card */}
-            {activeEntityDef && (
-              <div>
-                <div className="bg-blue-50/60 border border-blue-100 rounded-lg p-3.5 mb-4">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-blue-900">
-                    <span className="w-2 h-2 rounded-full bg-blue-600"></span>
-                    Objet : <span className="font-mono">{activeEntityDef.title}</span>
-                  </div>
-                  <p className="text-xs text-blue-800/80 mt-1">{activeEntityDef.description}</p>
-                </div>
-
-                <div className="overflow-x-auto border border-gray-200 rounded-lg">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-gray-50 border-b border-gray-200 text-gray-700 font-semibold uppercase tracking-wider">
+              <div className="min-h-0 flex-1 overflow-auto">
+                <table className="w-full min-w-[700px] text-left text-xs">
+                    <thead className="sticky top-0 z-10 bg-gray-50 border-b border-gray-200 text-gray-700 font-semibold uppercase tracking-wider shadow-[0_1px_0_0_rgb(229,231,235)]">
                       <tr>
                         <th className="px-4 py-3">Nom technique</th>
                         <th className="px-3 py-3">Type</th>
@@ -569,11 +546,10 @@ export function DocumentationPage() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
-                </div>
+                </table>
               </div>
-            )}
-          </div>
+            </section>
+          )}
         </div>
       )}
 
