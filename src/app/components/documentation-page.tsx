@@ -395,9 +395,9 @@ export function DocumentationPage() {
   const activeEntityDef = DATA_DICTIONARY[selectedEntity];
 
   return (
-    <div className={`flex-1 overflow-y-auto w-full ${activeTab === "flows" || activeTab === "dictionary" || activeTab === "functional" || activeTab === "raw" ? "max-w-none px-2 py-1" : "px-4 py-3 sm:px-6 sm:py-4 max-w-7xl mx-auto"}`}>
+    <div className="flex-1 overflow-y-auto w-full max-w-none px-2 py-1">
       {/* Header compact */}
-      <div className={activeTab === "flows" || activeTab === "dictionary" || activeTab === "functional" || activeTab === "raw" ? "mb-2" : "mb-3"}>
+      <div className="mb-2">
         <div className="flex items-center gap-2.5">
           <div className="p-1.5 bg-blue-100 text-blue-700 rounded-lg shrink-0">
             <BookOpen className="w-5 h-5" />
