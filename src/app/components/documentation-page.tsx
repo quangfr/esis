@@ -360,8 +360,28 @@ const DATA_DICTIONARY: Record<string, ObjectDef> = {
       { name: "activePractitionerId", type: "string", example: '"med-1"', description: "Praticien actif par défaut." },
     ],
   },
+  CareTimelineStep: {
+    title: "CareTimelineStep",
+    description: "Étape chronologique imbriquée dans le parcours d'un ProgrammeDepistage.",
+    fields: [
+      { name: "id", type: "string", example: '"step-1"', description: "Identifiant de l'étape." },
+      { name: "titre", type: "string", example: '"Envoi du courrier d’invitation"', description: "Intitulé de l'étape." },
+      { name: "periode", type: "string", example: '"Janvier 2026"', description: "Date ou période affichée." },
+      { name: "statut", type: "enum", example: '"En cours"', description: "Position dans le parcours.", choices: ["Précédent", "En cours", "Suivant"] },
+      { name: "detail", type: "string", example: '"Courrier envoyé"', description: "Précision opérationnelle." },
+    ],
+  },
+  Attachment: {
+    title: "Attachment",
+    description: "Pièce jointe facultative, imbriquée dans un MessageThread.",
+    fields: [
+      { name: "nom", type: "string", example: '"convocation.pdf"', description: "Nom du fichier joint." },
+      { name: "taille", type: "string", example: '"1.2 Mo"', description: "Taille affichée du fichier." },
+    ],
+  },
 };
- {
+ 
+export function DocumentationPage() {
   const [activeTab, setActiveTab] = useState<"dictionary" | "functional" | "flows" | "raw">("dictionary");
   const [selectedEntity, setSelectedEntity] = useState<string>("Patient");
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
@@ -840,19 +860,15 @@ const DATA_DICTIONARY: Record<string, ObjectDef> = {
 ## 2. Architecture des Données & Relations
 - Diagramme de classes UML Mermaid.
 
-## 3. Dictionnaire Détaillé des Propriétés par Objet
-- Patient (28 propriétés typées avec enum exhaustifs)
-- Praticien (9 propriétés)
-- Episode (5 propriétés)
-- Enrolement (5 propriétés)
-- Tache (6 propriétés)
-- ProgrammeDepistage (10 propriétés)
-- CareTimelineStep (5 propriétés)
-- DocumentMedical (8 propriétés)
-- FilDiscussion (13 propriétés)
+## 3. Dictionnaire des Données
+- Interfaces TypeScript principales : Patient, Practitioner, Episode, Task, Enrollment, ScreeningProgram, ScreeningDocument, MessageThread et DemoDataBundle.
+- Objets imbriqués documentés : Constantes, CareTimelineStep, Questionnaire, ProposedExam et Attachment.
+- Métadonnées documentées : RoleProfile et AppMetadata; valeurs des enums indiquées dans les fiches.
 
 ## 4. Architecture de Stockage IndexedDB
-- esis-fake-firestore v1 (patients, practitioners, messages, app_metadata)
+- esis-fake-firestore v1 : magasins patients, practitioners, messages et app_metadata.
+- Les sous-objets métier restent imbriqués dans leur Patient ou Programme; ils ne sont pas des magasins séparés.
+- DemoDataBundle sert à l'amorçage et aux payloads de collections, pas au stockage.
 
 ## 5. Diagrammes UML Mermaid
 - State machine cycle de vie
