@@ -211,88 +211,70 @@ const SCHEMA_MERMAID_CODE = `classDiagram
     note for AppMetadata "Un enregistrement bootstrap dans le magasin app_metadata."
 `;
 
-const APP_FLOWS_MERMAID_CODE = `flowchart TB
-    subgraph Bootstrap["Démarrage de l'application"]
-        direction LR
-        Open["Ouverture de l'application"] --> Load["AppStateProvider appelle loadAppData"]
-        Load --> API["fake-firestore : GET /bootstrap"]
-        API --> Seeded{"Métadonnées bootstrap présentes ?"}
-        Seeded -->|Non| Demo["Initialise IndexedDB depuis demoDataBundle"]
-        Seeded -->|Oui| Read["Lit patients, practitioners, messages et métadonnées"]
-        Demo --> Ready["DemoDataBundle chargé dans l'état React"]
-        Read --> Ready
-        API -. "si erreur : repli" .-> Local["Données locales demoDataBundle"]
-    end
+const BOOTSTRAP_FLOW_MERMAID_CODE = `flowchart TD
+    Open["Ouverture de l'application"] --> Load["AppStateProvider : loadAppData()"]
+    Load --> API["fake-firestore : GET /bootstrap"]
+    API --> Seeded{"Métadonnées bootstrap présentes ?"}
+    Seeded -->|Non| Seed["Initialise IndexedDB depuis demoDataBundle"]
+    Seeded -->|Oui| Read["Lit patients, practitioners, messages et app_metadata"]
+    Seed --> Ready["Charge DemoDataBundle dans l'état React"]
+    Read --> Ready
+    API -. "en cas d'erreur" .-> Fallback["Repli sur demoDataBundle local"]
+    Fallback --> Ready`;
 
-    subgraph Patient["Création ou mise à jour d'un patient"]
-        direction LR
-        Manager["Gestionnaire dans PatientsPage"] --> Action{"Action"}
-        Action -->|Création guidée| Create["Construit le dossier initial, avec épisode et enrôlement"]
-        Action -->|Enregistrement| Edit["Modifie statut, téléphone ou ville"]
-        Create --> PatientStore["AppStateProvider → fake-firestore"]
-        Edit --> PatientStore
-        PatientStore --> PatientIDB["Écrit l'objet Patient complet par id"]
-        PatientIDB --> PatientUI["Met à jour la liste et sélectionne le dossier actif"]
-    end
+const PATIENT_JOURNEY_MERMAID_CODE = `flowchart TD
+    Patient["Usager avec le rôle Patient"] --> Open["Ouvre Patients : Mon dossier de dépistage"]
+    Open --> Data["PatientsPage affiche le patient actif fourni par AppStateProvider"]
+    Data --> Overview["Consulte statut, rappel, progression et informations du dossier"]
+    Overview --> Program["Choisit un programme de dépistage"]
+    Program --> Timeline["Consulte résumé, résultat, prochain examen et timeline"]
+    Timeline --> Content["Consulte documents et formulaires de préparation"]
+    Content --> Document{"Élément sélectionné"}
+    Document -->|Document| Preview["Ouvre l'aperçu du document"]
+    Document -->|Formulaire| Form["Ouvre la simulation de formulaire"]
+    Form --> Save["Enregistre la simulation : confirmation locale, sans persistance métier"]`;
 
-    subgraph Messaging["Envoi d'un message dans la démo"]
-        direction LR
-        User["Utilisateur du rôle actif"] --> Compose["Compose destinataire, sujet et contenu"]
-        Compose --> Message["Crée un MessageThread : Envoyé, boîte Envoyés"]
-        Message --> MessageStore["AppStateProvider → fake-firestore"]
-        MessageStore --> MessageIDB["Écrit le fil dans IndexedDB (messages)"]
-        MessageIDB --> Sent["Actualise l'état et affiche la boîte Envoyés"]
-    end
+const PATIENT_RECORD_FLOW_MERMAID_CODE = `flowchart TD
+    Manager["Gestionnaire ouvre PatientsPage"] --> Action{"Action sur le dossier"}
+    Action -->|Nouveau patient| Form["Suit le formulaire guidé en quatre étapes"]
+    Form --> Create["Construit le Patient, son épisode initial et son enrôlement initial"]
+    Create --> CreateState["AppStateProvider : createPatient()"]
+    CreateState --> CreateStore["fake-firestore : enregistre le Patient par id"]
+    CreateStore --> IDB["IndexedDB : magasin patients"]
+    Action -->|Modifier la fiche| Edit["Change statut, téléphone ou ville"]
+    Edit --> UpdateState["AppStateProvider : updatePatient()"]
+    UpdateState --> UpdateStore["fake-firestore : remplace le Patient par id"]
+    UpdateStore --> IDB
+    IDB --> Refresh["Met à jour la liste et le dossier actif dans l'état React"]
+    Refresh --> Feedback["Affiche la fiche mise à jour et la confirmation"]`;
 
-    Bootstrap ~~~ Patient
-    Patient ~~~ Messaging`;
+const MESSAGE_FLOW_MERMAID_CODE = `flowchart TD
+    User["Utilisateur du rôle actif"] --> Compose["Compose destinataire, sujet et contenu"]
+    Compose --> Build["MessagingPage crée un MessageThread\nstatut Envoyé, boîte Envoyés"]
+    Build --> State["AppStateProvider : createMessage()"]
+    State --> Store["fake-firestore : enregistre le fil par id"]
+    Store --> IDB["IndexedDB : magasin messages"]
+    IDB --> Update["Ajoute le message à l'état React"]
+    Update --> Sent["Affiche le message dans la boîte Envoyés"]
+    Sent -.-> Note["Persistance locale de démonstration; aucun envoi externe"]`;
 
-const PATIENT_JOURNEY_MERMAID_CODE = `sequenceDiagram
-    autonumber
-    actor G as Gestionnaire
-    participant UI as PatientsPage
-    participant State as AppStateProvider
-    participant Store as fake-firestore
-    participant IDB as IndexedDB (patients)
-    participant P as Dossier patient
-
-    G->>UI: Ouvre l'espace patients
-    UI->>State: Demande patients et praticiens
-    State-->>UI: Affiche la liste et le dossier actif
-    alt Création d'un patient
-        G->>UI: Suit les étapes du formulaire puis Créer
-        UI->>UI: Construit le dossier initial (épisode et enrôlement inclus)
-        UI->>State: createPatient(patient)
-        State->>Store: createPatientInFakeFirestore(patient)
-        Store->>IDB: Enregistre le dossier complet par id
-        IDB-->>State: Écriture terminée
-        State->>State: Ajoute le dossier à la liste et le sélectionne
-    else Modification du dossier
-        G->>UI: Modifie statut, téléphone ou ville puis enregistre
-        UI->>State: updatePatient(patient)
-        State->>Store: updatePatientInFakeFirestore(patient)
-        Store->>IDB: Remplace le dossier patient par id
-        IDB-->>State: Écriture terminée
-        State->>State: Met à jour la liste et le dossier actif
-    end
-    State-->>UI: Affiche les données mises à jour
-    UI-->>G: Confirme l'enregistrement du dossier`;
-
-const CYCLE_VIE_MERMAID_CODE = `stateDiagram-v2
-    state "Statut du dossier Patient" as PatientStatus {
-        [*] --> EnAttente
-        EnAttente: En attente
-        Invite: Invité
-        ExamenRealise: Examen réalisé
-        ResultatsDisponibles: Résultats disponibles
-    }
-    note right of PatientStatus: Valeurs exactes de Patient.statut.\nLe gestionnaire peut choisir directement l'une des quatre valeurs dans la fiche.\nAucun enchaînement automatique lié à un acte médical n'est implémenté.`;
+const CYCLE_VIE_MERMAID_CODE = `flowchart TD
+    Manager["Gestionnaire ouvre la fiche patient"] --> Select["Choisit un statut dans le sélecteur Patient.statut"]
+    Select --> Values["Valeurs possibles :<br/>En attente<br/>Invité<br/>Examen réalisé<br/>Résultats disponibles"]
+    Values --> Save["Clique Enregistrer les modifications"]
+    Save --> Update["AppStateProvider : updatePatient(patient)"]
+    Update --> Persist["fake-firestore remplace l'objet Patient par id dans IndexedDB"]
+    Persist --> State["Met à jour patients[] et activePatientId dans l'état React"]
+    State --> Display["La fiche et son badge affichent le statut choisi"]
+    Display -.-> Note["Le statut est choisi manuellement; aucun acte médical ne déclenche de transition automatique"]`;
 
 const DIAGRAMS = {
   schema: { label: "Modèle de données", title: "Modèle de données complet", code: SCHEMA_MERMAID_CODE },
-  flow: { label: "Flux", title: "Flux de l'application", code: APP_FLOWS_MERMAID_CODE },
-  lifecycle: { label: "Cycle de vie", title: "Cycle de vie des statuts", code: CYCLE_VIE_MERMAID_CODE },
-  patient: { label: "Parcours patient", title: "Parcours patient dans la démo", code: PATIENT_JOURNEY_MERMAID_CODE },
+  flow: { label: "Flux de démarrage", title: "Flux de démarrage de l'application", code: BOOTSTRAP_FLOW_MERMAID_CODE },
+  lifecycle: { label: "Cycle de vie", title: "Cycle de vie du statut patient", code: CYCLE_VIE_MERMAID_CODE },
+  patient: { label: "Parcours patient", title: "Parcours patient dans l'application", code: PATIENT_JOURNEY_MERMAID_CODE },
+  patientRecord: { label: "Dossier patient", title: "Création et mise à jour du dossier", code: PATIENT_RECORD_FLOW_MERMAID_CODE },
+  messaging: { label: "Messagerie", title: "Flux d'envoi d'un message", code: MESSAGE_FLOW_MERMAID_CODE },
 } as const;
 
 type DiagramKey = keyof typeof DIAGRAMS;
@@ -377,9 +359,9 @@ export function UmlViewer() {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden flex flex-col flex-1 h-[calc(100vh-165px)] min-h-[580px]">
+    <div className="w-full min-w-0 bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden flex flex-col flex-none h-[calc(100vh-105px)] min-h-0">
       {/* Top Toolbar */}
-      <div className="px-4 py-2 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 shrink-0">
+      <div className="px-3 py-1.5 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-1.5 border-b border-slate-800 shrink-0">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse"></span>
           <span className="font-semibold text-xs tracking-tight">Mermaid Viewer</span>
@@ -398,7 +380,7 @@ export function UmlViewer() {
                 setActiveDiagram(event.target.value as DiagramKey);
                 setZoom(1);
               }}
-              className="appearance-none rounded-md border border-slate-700 bg-slate-800 py-1.5 pl-3 pr-8 text-xs font-medium text-white outline-none transition-colors hover:bg-slate-700 focus:ring-2 focus:ring-blue-400"
+              className="appearance-none rounded-md border border-slate-700 bg-slate-800 py-1 pl-2.5 pr-7 text-xs font-medium text-white outline-none transition-colors hover:bg-slate-700 focus:ring-2 focus:ring-blue-400"
             >
               {Object.entries(DIAGRAMS).map(([key, diagram]) => (
                 <option key={key} value={key}>{diagram.label}</option>
@@ -475,7 +457,7 @@ export function UmlViewer() {
 
       {/* RENDERED MERMAID VIEWER (Full height of container, no internal scrollbar) */}
       {viewMode === "rendered" && (
-        <div className="p-4 bg-slate-50 flex-1 flex items-center justify-center overflow-hidden">
+        <div className="p-2 bg-slate-50 flex-1 min-h-0 flex items-center justify-center overflow-auto">
           {isLoading && (
             <div className="flex items-center gap-2 text-xs text-slate-600">
               <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
@@ -486,7 +468,7 @@ export function UmlViewer() {
           {!isLoading && !hasError && svgContent && (
             <div
               ref={containerRef}
-              className="w-full h-full flex items-center justify-center transition-transform origin-center duration-150 [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:w-auto [&>svg]:h-auto"
+              className="w-full h-full min-w-0 min-h-0 flex items-center justify-center transition-transform origin-center duration-150 [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:w-auto [&>svg]:h-auto"
               style={{ transform: `scale(${zoom})`, transformOrigin: "center center" }}
               dangerouslySetInnerHTML={{ __html: svgContent }}
             />
@@ -507,7 +489,7 @@ export function UmlViewer() {
 
       {/* CODE SOURCE VIEW */}
       {viewMode === "code" && (
-        <div className="p-4 bg-slate-950 text-slate-100 flex-1 overflow-auto">
+        <div className="p-4 bg-slate-950 text-slate-100 flex-1 min-h-0 overflow-auto">
           <pre className="p-4 bg-slate-900 border border-slate-800 rounded-lg font-mono text-xs overflow-x-auto leading-relaxed text-cyan-300">
             {currentMermaidCode}
           </pre>

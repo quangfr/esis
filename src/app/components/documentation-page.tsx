@@ -62,7 +62,7 @@ const DATA_DICTIONARY: Record<string, ObjectDef> = {
       },
       { name: "derniereVisite", type: "string", example: '"12/01/2026"', description: "Date de la dernière interaction ou examen médical." },
       { name: "prochainRappel", type: "string", example: '"12/01/2028"', description: "Échéance cible pour la prochaine invitation de dépistage." },
-      { name: "praticienId", type: "string", example: '"med-1"', description: "Identifiant du praticien référent rattaché (clé étrangère)." },
+      { name: "praticienId", type: "string", example: '"med-1"', description: "Référence par identifiant vers Practitioner.id, sans contrainte de clé étrangère." },
       { name: "centre", type: "string", example: '"Centre de Radiologie Gambetta"', description: "Établissement ou centre de santé de prise en charge." },
       { name: "ville", type: "string", example: '"Bordeaux"', description: "Commune de résidence." },
       { name: "telephone", type: "string", example: '"06 12 34 56 78"', description: "Numéro de téléphone mobile pour rappels et SMS." },
@@ -395,9 +395,9 @@ export function DocumentationPage() {
   const activeEntityDef = DATA_DICTIONARY[selectedEntity];
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-3 sm:px-6 sm:py-4 max-w-7xl mx-auto w-full">
+    <div className={`flex-1 overflow-y-auto w-full ${activeTab === "flows" ? "max-w-none px-2 py-1" : "px-4 py-3 sm:px-6 sm:py-4 max-w-7xl mx-auto"}`}>
       {/* Header compact */}
-      <div className="mb-3">
+      <div className={activeTab === "flows" ? "mb-2" : "mb-3"}>
         <div className="flex items-center gap-2.5">
           <div className="p-1.5 bg-blue-100 text-blue-700 rounded-lg shrink-0">
             <BookOpen className="w-5 h-5" />
@@ -872,9 +872,8 @@ export function DocumentationPage() {
 
 ## 5. Diagrammes UML Mermaid
 - Modèle de données complet : objets stockés, structures imbriquées et références par identifiant.
-- Flux de l'application : démarrage, création/mise à jour d'un dossier patient et messagerie persistée localement.
-- Cycle de vie des statuts disponibles dans le dossier patient et modification manuelle par le gestionnaire.
-- Parcours patient dans l'application : consultation, création guidée ou mise à jour du dossier.
+- Flux de démarrage et cycle de vie du statut patient.
+- Parcours patient (vue Usager), création/mise à jour du dossier (vue Gestionnaire) et messagerie locale, chacun dans son propre diagramme vertical.
 
 Ces diagrammes décrivent la démo front-end actuelle. Les envois externes (courrier/SMS), rendez-vous, actes médicaux et transmissions de résultats ne sont pas implémentés.`}</pre>
           </div>

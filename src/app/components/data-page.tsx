@@ -1721,7 +1721,7 @@ function getResponseDefinition(route: string, method: HttpVerb): ResponseDefinit
         { key: "[].statut", format: "enum", required: "always", notes: "Current patient status." },
         { key: "[].derniereVisite", format: "DD/MM/YYYY", required: "common", notes: "Last care interaction date." },
         { key: "[].prochainRappel", format: "DD/MM/YYYY", required: "common", notes: "Next reminder or follow-up date." },
-        { key: "[].praticienId", format: "string", required: "always", notes: "Practitioner foreign key used by the UI." },
+        { key: "[].praticienId", format: "string", required: "always", notes: "Application-level practitioner identifier reference; no foreign-key constraint is enforced." },
         { key: "[].centre", format: "string", required: "always", notes: "Owning care center or structure label." },
         { key: "[].ville", format: "string", required: "always", notes: "Displayed city." },
         { key: "[].telephone", format: "string", required: "always", notes: "Primary phone number." },

@@ -248,7 +248,7 @@ Entité centrale représentant l'usager éligible ou enrôlé dans un ou plusieu
 | `statut` | `enum` | `"Invité"` | Statut global dans la campagne en cours :<br>• `"En attente"`<br>• `"Invité"`<br>• `"Examen réalisé"`<br>• `"Résultats disponibles"` |
 | `derniereVisite` | `string` | `"12/01/2026"` | Date du dernier contact ou examen de dépistage réalisé. |
 | `prochainRappel` | `string` | `"12/01/2028"` | Échéance calculée du prochain rappel de dépistage. |
-| `praticienId` | `string` | `"med-1"` | Référence (clé étrangère) vers le `Practitioner` référent. |
+| `praticienId` | `string` | `"med-1"` | Référence par identifiant vers `Practitioner.id`; aucune contrainte de clé étrangère n'est appliquée. |
 | `centre` | `string` | `"Centre de Radiologie Gambetta"` | Centre d'examen ou structure de soins rattachée. |
 | `ville` | `string` | `"Bordeaux"` | Ville de résidence ou de prise en charge. |
 | `telephone` | `string` | `"06 12 34 56 78"` | Numéro de téléphone mobile pour les notifications et relances. |
@@ -443,33 +443,16 @@ Pour assurer une démonstration interactive fiable et déterministe sans dépend
 ### 5.1. Flux de démarrage et de chargement des données
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor User as Utilisateur
-    participant UI as React UI (App)
-    participant Provider as AppStateProvider
-    participant Remote as remote-data
-    participant FakeFS as fake-firestore
-    participant IDB as IndexedDB
-    participant Seed as demoDataBundle
-
-    User->>UI: Ouvre la plateforme ESIS
-    UI->>Provider: Initialisation (Mount)
-    Provider->>Remote: loadAppData()
-    Remote->>FakeFS: fakeFirestoreRequest("GET /bootstrap")
-    FakeFS->>IDB: Vérifie app_metadata/bootstrap
-    alt IndexedDB non initialisée
-        FakeFS->>Seed: Lit les données statiques de démo
-        FakeFS->>IDB: Initialise patients, practitioners, messages et app_metadata
-        IDB-->>FakeFS: Confirmation des écritures
-    else IndexedDB déjà initialisée
-        FakeFS->>IDB: Lit les trois magasins et les métadonnées
-        IDB-->>FakeFS: Collections et profil actif
-    end
-    FakeFS-->>Remote: DemoDataBundle
-    Remote-->>Provider: Données chargées (ou repli sur données locales si erreur)
-    Provider-->>UI: État global mis à jour et fin du chargement
-    UI-->>User: Affichage de l'espace actif
+flowchart TD
+    Open["Ouverture de l'application"] --> Load["AppStateProvider : loadAppData()"]
+    Load --> API["fake-firestore : GET /bootstrap"]
+    API --> Seeded{"Métadonnées bootstrap présentes ?"}
+    Seeded -->|Non| Seed["Initialise IndexedDB depuis demoDataBundle"]
+    Seeded -->|Oui| Read["Lit patients, practitioners, messages et app_metadata"]
+    Seed --> Ready["Charge DemoDataBundle dans l'état React"]
+    Read --> Ready
+    API -. "en cas d'erreur" .-> Fallback["Repli sur demoDataBundle local"]
+    Fallback --> Ready
 ```
 
 ---
@@ -477,35 +460,17 @@ sequenceDiagram
 ### 5.2. Parcours patient dans l'application
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor G as Gestionnaire
-    participant UI as PatientsPage
-    participant State as AppStateProvider
-    participant Store as fake-firestore
-    participant IDB as IndexedDB (patients)
-
-    G->>UI: Ouvre l'espace patients et consulte la liste
-    UI->>State: Lit patients, praticiens et dossier actif
-    State-->>UI: Données chargées
-    alt Création d'un dossier
-        G->>UI: Parcourt le formulaire guidé et clique sur Créer
-        UI->>UI: Construit le patient avec un épisode et un enrôlement initiaux
-        UI->>State: createPatient(patient)
-        State->>Store: createPatientInFakeFirestore(patient)
-        Store->>IDB: Enregistre l'objet Patient complet par id
-        IDB-->>State: Écriture terminée
-        State->>State: Ajoute le patient à la liste et le rend actif
-    else Mise à jour d'un dossier
-        G->>UI: Modifie le statut, le téléphone ou la ville puis enregistre
-        UI->>State: updatePatient(patient)
-        State->>Store: updatePatientInFakeFirestore(patient)
-        Store->>IDB: Remplace l'objet Patient par id
-        IDB-->>State: Écriture terminée
-        State->>State: Met à jour la liste et le patient actif
-    end
-    State-->>UI: État actualisé
-    UI-->>G: Affiche le dossier mis à jour
+flowchart TD
+    Patient["Usager avec le rôle Patient"] --> Open["Ouvre Patients : Mon dossier de dépistage"]
+    Open --> Data["PatientsPage affiche le patient actif fourni par AppStateProvider"]
+    Data --> Overview["Consulte statut, rappel, progression et informations du dossier"]
+    Overview --> Program["Choisit un programme de dépistage"]
+    Program --> Timeline["Consulte résumé, résultat, prochain examen et timeline"]
+    Timeline --> Content["Consulte documents et formulaires de préparation"]
+    Content --> Selected{"Élément sélectionné"}
+    Selected -->|Document| Preview["Ouvre l'aperçu du document"]
+    Selected -->|Formulaire| Form["Ouvre la simulation de formulaire"]
+    Form --> Save["Enregistre la simulation : confirmation locale, sans persistance métier"]
 ```
 
 ---
@@ -513,56 +478,53 @@ sequenceDiagram
 ### 5.3. Flux d'envoi d'un message
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor U as Utilisateur du rôle actif
-    participant UI as MessagingPage
-    participant State as AppStateProvider
-    participant Store as fake-firestore
-    participant IDB as IndexedDB (messages)
-
-    U->>UI: Compose destinataire, sujet et contenu
-    UI->>UI: Construit un message (Envoyé, boîte Envoyés)
-    UI->>State: createMessage(message)
-    State->>Store: createMessageInFakeFirestore(message)
-    Store->>IDB: Enregistre le message par id
-    IDB-->>State: Écriture terminée
-    State->>State: Ajoute le message à l'état React
-    State-->>UI: Messages actualisés
-    UI->>UI: Sélectionne la boîte Envoyés et le nouveau message
-    UI-->>U: Affiche le message envoyé
+flowchart TD
+    User["Utilisateur du rôle actif"] --> Compose["Compose destinataire, sujet et contenu"]
+    Compose --> Build["MessagingPage crée un MessageThread : Envoyé, boîte Envoyés"]
+    Build --> State["AppStateProvider : createMessage()"]
+    State --> Store["fake-firestore enregistre le fil par id"]
+    Store --> IDB["IndexedDB : magasin messages"]
+    IDB --> Update["Ajoute le message à l'état React"]
+    Update --> Sent["Affiche le message dans la boîte Envoyés"]
+    Sent -.-> Note["Persistance locale de démonstration; aucun envoi externe"]
+```
 
 > Dans cette démo, le message est persisté localement et reçoit le statut « Envoyé » dans l'interface. Aucun transport vers un destinataire externe n'est effectué.
+
+---
+
+### 5.4. Cycle de vie du statut patient
+
+```mermaid
+flowchart TD
+    Manager["Gestionnaire ouvre la fiche patient"] --> Select["Choisit un statut dans le sélecteur Patient.statut"]
+    Select --> Values["Valeurs possibles :<br/>En attente<br/>Invité<br/>Examen réalisé<br/>Résultats disponibles"]
+    Values --> Save["Clique Enregistrer les modifications"]
+    Save --> Update["AppStateProvider : updatePatient(patient)"]
+    Update --> Persist["fake-firestore remplace l'objet Patient par id dans IndexedDB"]
+    Persist --> State["Met à jour patients[] et activePatientId dans l'état React"]
+    State --> Display["La fiche et son badge affichent le statut choisi"]
+    Display -.-> Note["Modification manuelle; aucun acte médical ne déclenche de transition automatique"]
 ```
 
 ---
 
-### 5.4. Cycle de vie des statuts représentés dans le code
+### 5.5. Création ou mise à jour d'un dossier patient
 
 ```mermaid
-stateDiagram-v2
-    state "Patient.statut" as PatientStatus {
-        [*] --> EnAttente
-        EnAttente: En attente
-        EnAttente --> Invite: Statut édité dans l'espace gestionnaire
-        Invite: Invité
-        Invite --> ExamenRealise: Statut édité dans l'espace gestionnaire
-        ExamenRealise: Examen réalisé
-        ExamenRealise --> ResultatsDisponibles: Statut édité dans l'espace gestionnaire
-        ResultatsDisponibles: Résultats disponibles
-    }
-    note right of PatientStatus: Valeurs de l'union Patient.statut.\nPas de transition automatique à la réception d'un résultat.
-
-    state "Task.statut (objet imbriqué)" as TaskStatus {
-        [*] --> Afaire
-        Afaire: À faire
-        Afaire --> EnCours
-        EnCours: En cours
-        EnCours --> Bloquee
-        Bloquee: Bloquée
-        EnCours --> Terminee
-        Terminee: Terminée
-    }
+flowchart TD
+    Manager["Gestionnaire ouvre PatientsPage"] --> Action{"Action sur le dossier"}
+    Action -->|Nouveau patient| Form["Suit le formulaire guidé en quatre étapes"]
+    Form --> Create["Construit le Patient, son épisode initial et son enrôlement initial"]
+    Create --> CreateState["AppStateProvider : createPatient()"]
+    CreateState --> CreateStore["fake-firestore enregistre le Patient par id"]
+    CreateStore --> IDB["IndexedDB : magasin patients"]
+    Action -->|Modifier la fiche| Edit["Change statut, téléphone ou ville"]
+    Edit --> UpdateState["AppStateProvider : updatePatient()"]
+    UpdateState --> UpdateStore["fake-firestore remplace le Patient par id"]
+    UpdateStore --> IDB
+    IDB --> Refresh["Met à jour la liste et le dossier actif dans l'état React"]
+    Refresh --> Feedback["Affiche la fiche mise à jour et la confirmation"]
 ```
 
 ---
